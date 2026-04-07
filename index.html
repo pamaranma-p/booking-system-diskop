@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Booking DISKOP UKM JATENG</title>
+    <title>E-Booking - Dinas Koperasi & UKM Jateng</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -13,316 +13,363 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .bg-jateng { background-color: #1e3a8a; }
         .hidden-auth { display: none !important; }
         
-        /* Kalender */
-        .cal-day { 
-            height: 40px; display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; border-radius: 10px; font-size: 12px; font-weight: bold;
-            transition: all 0.2s;
-        }
-        .cal-day:hover { background-color: #dbeafe; color: #1e3a8a; }
-        .cal-day.active-date { background-color: #1e3a8a !important; color: white !important; }
+        .status-pending { background-color: #fef08a; color: #854d0e; }
+        .status-approved { background-color: #dcfce7; color: #166534; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
         
-        /* Time Picker */
-        .tp-overlay { 
-            display: none; position: absolute; bottom: 105%; left: 0; width: 100%; 
-            background: white; border: 1px solid #e5e7eb; border-radius: 1rem; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; padding: 10px;
-        }
-        .tp-col { height: 100px; overflow-y: auto; scrollbar-width: none; }
-        .tp-item { padding: 5px; text-align: center; cursor: pointer; border-radius: 6px; font-size: 13px; }
-        .tp-item.selected-time { background: #1e3a8a; color: white; }
-
-        .btn-primary { background-color: #1e3a8a; color: white; transition: all 0.3s; }
-        .btn-primary:hover { background-color: #1e40af; transform: translateY(-1px); }
+        .calendar-day { transition: all 0.2s; cursor: pointer; height: 35px; width: 35px; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 10px; }
+        .calendar-day:hover:not(.empty) { background-color: #eff6ff; color: #1e40af; }
+        .calendar-day.selected { background-color: #1e3a8a !important; color: white !important; box-shadow: 0 4px 6px -1px rgb(30 58 138 / 0.3); }
+        .calendar-day.today { border: 2px solid #facc15; font-weight: 800; }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800">
 
-    <div id="loginPage" class="fixed inset-0 bg-slate-900 z-[9999] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
-            <div class="text-center mb-8">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-20 mx-auto mb-4">
-                <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">E-Booking Login</h1>
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1">Dinas Koperasi & UKM Jawa Tengah</p>
+    <div id="loginModal" class="fixed inset-0 bg-jateng z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="p-8 text-center border-b bg-gray-50">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-16 mx-auto mb-4">
+                <h2 class="text-xl font-black text-blue-900 uppercase tracking-tighter">E-Booking Ruangan</h2>
+                <p class="text-gray-500 text-[10px] uppercase font-bold tracking-widest mt-1">Dinas Koperasi & UKM Jawa Tengah</p>
             </div>
-            
-            <div class="space-y-4">
-                <input type="text" id="logUser" placeholder="Username (admin / user)" class="w-full p-4 border-2 border-gray-100 rounded-2xl outline-none focus:border-blue-600 bg-gray-50 font-bold">
-                <input type="password" id="logPass" placeholder="Password" class="w-full p-4 border-2 border-gray-100 rounded-2xl outline-none focus:border-blue-600 bg-gray-50 font-bold">
-                <button onclick="doLogin()" class="w-full btn-primary py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg">Masuk Sekarang</button>
+            <div class="p-8 space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Username</label>
+                    <input type="text" id="username" placeholder="admin / user" class="w-full p-4 border-2 rounded-2xl outline-none focus:border-blue-600 transition bg-gray-50 mt-1 font-bold">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" class="w-full p-4 border-2 rounded-2xl outline-none focus:border-blue-600 transition bg-gray-50 mt-1 font-bold">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-blue-700 text-white font-black py-4 rounded-2xl hover:bg-blue-800 transition shadow-xl uppercase mt-2 tracking-widest text-sm">Masuk Sistem</button>
             </div>
         </div>
     </div>
 
-    <div id="mainApp" class="hidden-auth">
-        <nav class="bg-white border-b-4 border-yellow-500 p-4 sticky top-0 z-50 shadow-sm">
-            <div class="container mx-auto flex justify-between items-center">
+    <div id="appContent" class="hidden-auth">
+        <nav class="bg-white shadow-sm sticky top-0 z-50 border-b-4 border-yellow-500">
+            <div class="container mx-auto px-6 py-3 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-8">
-                    <span class="font-black text-slate-800 text-sm uppercase">Booking System</span>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-10">
+                    <div>
+                        <h1 class="font-black text-blue-900 text-xs leading-none">DISKOP UKM</h1>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase italic">Provinsi Jawa Tengah</p>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <span id="displayRole" class="text-[10px] font-black bg-blue-100 text-blue-800 px-3 py-1 rounded-full uppercase"></span>
-                    <button onclick="doLogout()" class="text-red-500 hover:text-red-700 transition"><i class="fas fa-power-off"></i></button>
+                    <span id="roleLabel" class="text-[10px] font-black bg-blue-50 text-blue-700 px-4 py-2 rounded-full border border-blue-100 uppercase tracking-widest"></span>
+                    <button onclick="handleLogout()" class="bg-red-50 text-red-600 p-2.5 rounded-xl hover:bg-red-600 hover:text-white transition border border-red-100">
+                        <i class="fas fa-power-off"></i>
+                    </button>
                 </div>
             </div>
         </nav>
 
-        <div class="container mx-auto px-4 py-8">
-            <div id="bookingSection" class="hidden-auth mb-10">
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 max-w-5xl mx-auto">
-                    <div class="bg-slate-800 p-4 text-white text-center font-bold uppercase text-xs tracking-widest">Formulir Pemesanan Ruang</div>
-                    <form id="formBooking" class="grid grid-cols-1 lg:grid-cols-3">
-                        <div class="p-6 border-r border-gray-50">
-                            <div class="flex justify-between items-center mb-4">
-                                <button type="button" onclick="moveMonth(-1)"><i class="fas fa-chevron-left text-xs"></i></button>
-                                <span id="calTitle" class="text-xs font-black uppercase"></span>
-                                <button type="button" onclick="moveMonth(1)"><i class="fas fa-chevron-right text-xs"></i></button>
-                            </div>
-                            <div id="calGrid" class="grid grid-cols-7 gap-1 mb-4"></div>
-                            <div id="datePreview" class="text-[10px] font-bold text-blue-600 bg-blue-50 p-2 rounded-lg text-center uppercase tracking-tighter">Pilih Tanggal Rapat</div>
-                        </div>
+        <header class="bg-jateng text-white py-16 px-6 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                <i class="fas fa-building text-[200px] absolute -bottom-10 -right-10"></i>
+            </div>
+            <div class="relative z-10">
+                <h2 class="text-3xl md:text-4xl font-black uppercase mb-2 tracking-tighter">Monitoring & Reservasi</h2>
+                <p class="opacity-80 text-sm font-light max-w-lg mx-auto leading-relaxed">Kelola penggunaan ruang rapat dengan lebih teratur, transparan, dan efisien.</p>
+            </div>
+        </header>
 
-                        <div class="lg:col-span-2 p-6 space-y-4">
-                            <input type="text" id="inpAgenda" placeholder="Nama Agenda / Rapat" required class="w-full p-4 bg-gray-50 border rounded-2xl font-bold text-sm outline-none focus:border-blue-600">
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <select id="inpRuang" class="p-4 bg-gray-50 border rounded-2xl font-bold text-sm outline-none">
+        <section class="container mx-auto px-6 -mt-10 mb-12 relative z-20">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-3xl shadow-xl border-b-4 border-blue-600 transform hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center"><i class="fas fa-users text-blue-600"></i></div>
+                        <span class="text-[9px] font-black text-gray-300 uppercase">Ruangan 01</span>
+                    </div>
+                    <h4 class="font-black text-blue-900 text-xs mb-1 uppercase">GATOTKACA</h4>
+                    <p class="text-2xl font-black text-gray-800">70 <small class="text-[10px] font-bold text-gray-400 uppercase">Pax</small></p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl shadow-xl border-b-4 border-green-500 transform hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center"><i class="fas fa-handshake text-green-600"></i></div>
+                        <span class="text-[9px] font-black text-gray-300 uppercase">Ruangan 02</span>
+                    </div>
+                    <h4 class="font-black text-blue-900 text-xs mb-1 uppercase">ARJUNA</h4>
+                    <p class="text-2xl font-black text-gray-800">25 <small class="text-[10px] font-bold text-gray-400 uppercase">Pax</small></p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl shadow-xl border-b-4 border-yellow-500 transform hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center"><i class="fas fa-comments text-yellow-600"></i></div>
+                        <span class="text-[9px] font-black text-gray-300 uppercase">Ruangan 03</span>
+                    </div>
+                    <h4 class="font-black text-blue-900 text-xs mb-1 uppercase">ARIMBI</h4>
+                    <p class="text-2xl font-black text-gray-800">15 <small class="text-[10px] font-bold text-gray-400 uppercase">Pax</small></p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl shadow-xl border-b-4 border-purple-500 transform hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center"><i class="fas fa-microphone-alt text-purple-600"></i></div>
+                        <span class="text-[9px] font-black text-gray-300 uppercase">Media</span>
+                    </div>
+                    <h4 class="font-black text-blue-900 text-xs mb-1 uppercase">PODCAST</h4>
+                    <p class="text-2xl font-black text-gray-800">4 <small class="text-[10px] font-bold text-gray-400 uppercase">Pax</small></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="userFormSection" class="container mx-auto px-6 hidden mb-12">
+            <div class="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+                <div class="bg-gray-50 p-6 border-b flex items-center justify-between">
+                    <h3 class="font-black text-blue-900 flex items-center text-sm uppercase tracking-widest">
+                        <i class="fas fa-calendar-plus mr-3 text-yellow-500 text-lg"></i> Buat Reservasi Baru
+                    </h3>
+                </div>
+                
+                <form id="bookingForm" class="grid grid-cols-1 lg:grid-cols-3">
+                    <div class="p-8 lg:border-r border-gray-100 bg-white">
+                        <label class="text-[10px] font-black text-gray-400 uppercase mb-4 block tracking-widest">1. Pilih Tanggal</label>
+                        <div class="bg-gray-50 p-4 rounded-3xl border border-gray-200">
+                            <div class="flex justify-between items-center mb-4 px-2">
+                                <button type="button" onclick="prevMonth()" class="hover:text-blue-700"><i class="fas fa-chevron-left text-xs"></i></button>
+                                <h4 id="calendarMonth" class="font-black text-blue-900 uppercase text-[11px]"></h4>
+                                <button type="button" onclick="nextMonth()" class="hover:text-blue-700"><i class="fas fa-chevron-right text-xs"></i></button>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-black text-gray-300 mb-2 uppercase">
+                                <div>S</div><div>S</div><div>R</div><div>K</div><div>J</div><div>S</div><div>M</div>
+                            </div>
+                            <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+                        </div>
+                        <input type="hidden" id="tanggal" required>
+                        <div id="selectedDateDisplay" class="mt-4 p-3 bg-blue-50 rounded-2xl text-[10px] font-bold text-blue-700 text-center border border-blue-100 italic">
+                            Silakan klik tanggal pada kalender
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 p-8 space-y-5 bg-white">
+                        <label class="text-[10px] font-black text-gray-400 uppercase block tracking-widest">2. Lengkapi Detail Kegiatan</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="md:col-span-2">
+                                <input type="text" id="kegiatan" placeholder="Judul Agenda / Nama Kegiatan" required class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-500 focus:bg-white transition text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Ruangan</label>
+                                <select id="ruangan" class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-sm outline-none focus:border-blue-500">
                                     <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
                                 </select>
-                                <select id="inpBidang" class="p-4 bg-gray-50 border rounded-2xl font-bold text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Bidang Pengusul</label>
+                                <select id="bidang" class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-sm outline-none focus:border-blue-500">
                                     <option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option><option>PEMASARAN</option>
                                 </select>
                             </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="relative">
-                                    <input type="text" id="inpMulai" placeholder="Jam Mulai" readonly onclick="openTP('tpMulai')" class="w-full p-4 bg-gray-50 border rounded-2xl font-bold text-sm cursor-pointer">
-                                    <div id="tpMulai" class="tp-overlay">
-                                        <div class="flex justify-around"><div class="tp-col" id="hMulai"></div><div class="tp-col" id="mMulai"></div></div>
-                                        <button type="button" onclick="closeTP('tpMulai')" class="w-full mt-2 bg-slate-800 text-white py-1 rounded-lg text-[10px] font-bold">SET</button>
-                                    </div>
+                            <div class="flex gap-4">
+                                <div class="w-1/2">
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Mulai</label>
+                                    <input type="time" id="jamMulai" required class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl text-sm font-bold outline-none focus:border-blue-500">
                                 </div>
-                                <div class="relative">
-                                    <input type="text" id="inpSelesai" placeholder="Jam Selesai" readonly onclick="openTP('tpSelesai')" class="w-full p-4 bg-gray-50 border rounded-2xl font-bold text-sm cursor-pointer">
-                                    <div id="tpSelesai" class="tp-overlay">
-                                        <div class="flex justify-around"><div class="tp-col" id="hSelesai"></div><div class="tp-col" id="mSelesai"></div></div>
-                                        <button type="button" onclick="closeTP('tpSelesai')" class="w-full mt-2 bg-slate-800 text-white py-1 rounded-lg text-[10px] font-bold">SET</button>
-                                    </div>
+                                <div class="w-1/2">
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Selesai</label>
+                                    <input type="time" id="jamSelesai" required class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl text-sm font-bold outline-none focus:border-blue-500">
                                 </div>
                             </div>
-
-                            <input type="text" id="inpPJ" placeholder="Penanggung Jawab" required class="w-full p-4 bg-gray-50 border rounded-2xl font-bold text-sm outline-none">
-                            <button type="submit" class="w-full btn-primary py-4 rounded-2xl font-black uppercase tracking-widest">Kirim Reservasi</button>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Penanggung Jawab (PJ)</label>
+                                <input type="text" id="pj" placeholder="Nama Lengkap" required class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-500 text-sm font-bold">
+                            </div>
                         </div>
-                    </form>
-                </div>
+                        <button type="submit" class="w-full bg-blue-700 text-white font-black py-5 rounded-2xl hover:bg-blue-800 transition uppercase shadow-xl tracking-widest text-sm mt-4">
+                            Konfirmasi & Kirim Booking
+                        </button>
+                    </div>
+                </form>
             </div>
+        </section>
 
-            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b flex justify-between items-center">
-                    <h2 class="font-black text-slate-800 uppercase tracking-tighter">Jadwal Penggunaan Ruang</h2>
-                    <div id="timeClock" class="text-blue-600 font-mono font-bold text-sm"></div>
+        <section class="container mx-auto px-6 py-12">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+                <div class="p-8 border-b flex flex-wrap justify-between items-center bg-white gap-6">
+                    <div>
+                        <h3 class="font-black text-blue-900 uppercase italic text-lg tracking-tighter">Jadwal Penggunaan Ruangan</h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Update real-time ketersediaan ruang</p>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 text-slate-400 font-black uppercase text-[10px] tracking-widest">
-                            <tr>
-                                <th class="p-4">Tanggal & Jam</th>
-                                <th class="p-4">Ruangan</th>
-                                <th class="p-4">Kegiatan / PIC</th>
-                                <th class="p-4 text-center">Status</th>
-                                <th class="p-4 text-center">Aksi</th>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-blue-900 text-white text-[9px] uppercase font-black tracking-widest">
+                                <th class="p-6">Waktu & Tanggal</th>
+                                <th class="p-6">Ruangan</th>
+                                <th class="p-6">Agenda Kegiatan</th>
+                                <th class="p-6">PIC / Bidang</th>
+                                <th class="p-6 text-center">Status</th>
+                                <th class="p-6 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody" class="divide-y divide-gray-50"></tbody>
+                        <tbody id="bookingTableBody" class="text-xs divide-y divide-gray-100 font-medium"></tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <script>
-        // --- KONFIGURASI FIREBASE ---
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = { databaseURL: "https://e-booking-eed92-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         // --- STATE ---
-        let currentRole = null;
-        let viewDate = new Date();
-        let selectedDate = "";
-        let allBookings = [];
+        let currentRole = "";
+        let currentViewDate = new Date();
+        let selectedDateStr = "";
+        const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
         // --- AUTH ---
-        function doLogin() {
-            const u = document.getElementById('logUser').value.toLowerCase();
-            const p = document.getElementById('logPass').value;
+        function handleLogin() {
+            const user = document.getElementById('username').value.toLowerCase();
+            const pass = document.getElementById('password').value;
             
-            if ((u === 'admin' && p === 'admin') || (u === 'user' && p === 'user')) {
-                currentRole = u;
-                sessionStorage.setItem('e_role', u);
-                
-                // Animasi Transisi
-                document.getElementById('loginPage').classList.add('hidden-auth');
-                document.getElementById('mainApp').classList.remove('hidden-auth');
+            if ((user === 'admin' && pass === 'admin') || (user === 'user' && pass === 'user')) {
+                currentRole = user;
+                sessionStorage.setItem('e_booking_role', user);
+                document.getElementById('loginModal').remove(); // Hapus modal dari layar
+                document.getElementById('appContent').classList.remove('hidden-auth');
                 
                 startApp();
             } else {
-                Swal.fire('Gagal', 'Username/Password Salah', 'error');
+                Swal.fire('Gagal', 'Username atau Password salah!', 'error');
             }
         }
 
-        function doLogout() {
-            sessionStorage.clear();
-            window.location.reload();
-        }
+        function handleLogout() { sessionStorage.clear(); window.location.reload(); }
 
-        // --- APP ENGINE ---
+        // --- APP LOGIC ---
         function startApp() {
-            const role = sessionStorage.getItem('e_role');
-            if(!role) return;
-            
-            document.getElementById('displayRole').innerText = "Akses: " + role;
-            if(role === 'user') document.getElementById('bookingSection').classList.remove('hidden-auth');
+            const role = sessionStorage.getItem('e_booking_role');
+            document.getElementById('roleLabel').innerText = "Akses: " + role;
+            if(role === 'user') document.getElementById('userFormSection').classList.remove('hidden');
             
             initCalendar();
-            setupTimePicker();
             
-            // Listen Database
-            db.ref('bookings').on('value', (snap) => {
-                const data = snap.val();
-                allBookings = data ? Object.values(data).sort((a,b) => b.id - a.id) : [];
-                renderTable();
+            // Listen Data Realtime
+            db.ref('bookings').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const list = data ? Object.values(data).sort((a,b) => b.id - a.id) : [];
+                renderTable(list);
             });
         }
 
-        // --- KALENDER ---
-        const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+        // --- CALENDAR ---
         function initCalendar() {
-            const grid = document.getElementById('calGrid');
+            const grid = document.getElementById('calendarGrid');
+            const monthLabel = document.getElementById('calendarMonth');
             grid.innerHTML = '';
-            const y = viewDate.getFullYear();
-            const m = viewDate.getMonth();
-            document.getElementById('calTitle').innerText = `${months[m]} ${y}`;
 
-            const first = new Date(y, m, 1).getDay();
-            const last = new Date(y, m+1, 0).getDate();
-            const startDay = first === 0 ? 6 : first - 1;
+            const year = currentViewDate.getFullYear();
+            const month = currentViewDate.getMonth();
+            monthLabel.innerText = `${months[month]} ${year}`;
 
-            for(let i=0; i<startDay; i++) grid.innerHTML += `<div></div>`;
-            for(let d=1; d<=last; d++) {
-                const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const activeClass = selectedDate === ds ? 'active-date' : '';
-                grid.innerHTML += `<div onclick="pickDate('${ds}')" class="cal-day ${activeClass}">${d}</div>`;
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let offset = firstDay === 0 ? 6 : firstDay - 1;
+
+            for (let i = 0; i < offset; i++) grid.innerHTML += `<div class="calendar-day empty"></div>`;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const isToday = dStr === todayStr;
+                const isSelected = dStr === selectedDateStr;
+                
+                grid.innerHTML += `
+                    <div onclick="selectDate('${dStr}')" class="calendar-day ${isToday?'today':''} ${isSelected?'selected':'font-bold text-gray-600'}">
+                        ${day}
+                    </div>`;
             }
         }
 
-        function pickDate(d) {
-            selectedDate = d;
-            document.getElementById('datePreview').innerText = new Date(d).toLocaleDateString('id-ID', { dateStyle: 'full' });
+        function selectDate(d) {
+            selectedDateStr = d;
+            document.getElementById('tanggal').value = d;
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('selectedDateDisplay').innerText = new Date(d).toLocaleDateString('id-ID', options);
             initCalendar();
         }
 
-        function moveMonth(dir) { viewDate.setMonth(viewDate.getMonth() + dir); initCalendar(); }
-
-        // --- TIME PICKER ---
-        function openTP(id) {
-            document.querySelectorAll('.tp-overlay').forEach(p => p.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-        }
-        function closeTP(id) { document.getElementById(id).style.display = 'none'; }
-
-        function setupTimePicker() {
-            const h = ["hMulai", "hSelesai"];
-            const m = ["mMulai", "mSelesai"];
-            const target = ["inpMulai", "inpSelesai"];
-
-            h.forEach((id, idx) => {
-                const el = document.getElementById(id);
-                for(let i=7; i<=21; i++){
-                    let v = String(i).padStart(2,'0');
-                    el.innerHTML += `<div class="tp-item" onclick="setTime('${target[idx]}','H','${v}',this)">${v}</div>`;
-                }
-            });
-
-            m.forEach((id, idx) => {
-                const el = document.getElementById(id);
-                [0, 15, 30, 45].forEach(v => {
-                    let s = String(v).padStart(2,'0');
-                    el.innerHTML += `<div class="tp-item" onclick="setTime('${target[idx]}','M','${s}',this)">${s}</div>`;
-                });
-            });
-        }
-
-        let timeState = { inpMulai: {h:'08', m:'00'}, inpSelesai: {h:'09', m:'00'} };
-        function setTime(tid, type, val, el) {
-            if(type === 'H') timeState[tid].h = val; else timeState[tid].m = val;
-            el.parentNode.querySelectorAll('.tp-item').forEach(i => i.classList.remove('selected-time'));
-            el.classList.add('selected-time');
-            document.getElementById(tid).value = `${timeState[tid].h}:${timeState[tid].m}`;
-        }
+        function prevMonth() { currentViewDate.setMonth(currentViewDate.getMonth() - 1); initCalendar(); }
+        function nextMonth() { currentViewDate.setMonth(currentViewDate.getMonth() + 1); initCalendar(); }
 
         // --- TABLE RENDER ---
-        function renderTable() {
-            const body = document.getElementById('tableBody');
+        function renderTable(dataList) {
+            const body = document.getElementById('bookingTableBody');
             body.innerHTML = '';
-            allBookings.forEach((b) => {
-                const statusColor = b.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+            
+            dataList.forEach(item => {
+                const sClass = `status-${item.status.toLowerCase()}`;
+                const adminBtns = currentRole === 'admin' ? `
+                    <div class="flex justify-center gap-2">
+                        <button onclick="updateStatus('${item.id}', 'Approved')" class="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition"><i class="fas fa-check"></i></button>
+                        <button onclick="updateStatus('${item.id}', 'Rejected')" class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition"><i class="fas fa-times"></i></button>
+                        <button onclick="deleteBooking('${item.id}')" class="bg-gray-800 text-white p-2 rounded-lg hover:bg-black transition"><i class="fas fa-trash"></i></button>
+                    </div>
+                ` : `<span class="text-gray-300 font-bold uppercase text-[9px]">No Access</span>`;
+
                 body.innerHTML += `
-                    <tr>
-                        <td class="p-4 font-bold text-slate-700">${b.tanggal}<br><span class="text-blue-600">${b.jam}</span></td>
-                        <td class="p-4 font-black text-slate-800">${b.ruangan}</td>
-                        <td class="p-4 font-medium">${b.agenda}<br><small class="text-gray-400 uppercase font-black">PIC: ${b.pj}</small></td>
-                        <td class="p-4 text-center"><span class="${statusColor} px-2 py-1 rounded-full text-[9px] font-black uppercase">${b.status}</span></td>
-                        <td class="p-4 text-center">
-                            ${sessionStorage.getItem('e_role') === 'admin' ? `
-                                <button onclick="actStatus('${b.id}', 'Approved')" class="text-green-500 mr-2"><i class="fas fa-check-circle"></i></button>
-                                <button onclick="actDelete('${b.id}')" class="text-red-500"><i class="fas fa-trash"></i></button>
-                            ` : '-'}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-6">
+                            <div class="font-black text-blue-900">${item.tanggal}</div>
+                            <div class="text-[10px] font-bold text-blue-600 uppercase"><i class="far fa-clock mr-1"></i> ${item.jam}</div>
                         </td>
+                        <td class="p-6 font-black text-gray-700 uppercase">${item.ruangan}</td>
+                        <td class="p-6 font-bold text-gray-600 uppercase max-w-xs truncate">${item.kegiatan}</td>
+                        <td class="p-6">
+                            <div class="font-black text-gray-800">${item.pj}</div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${item.bidang}</div>
+                        </td>
+                        <td class="p-6 text-center">
+                            <span class="${sClass} px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-white shadow-sm">${item.status}</span>
+                        </td>
+                        <td class="p-6 text-center">${adminBtns}</td>
                     </tr>`;
             });
         }
 
         // --- ACTIONS ---
-        function actStatus(id, s) { db.ref('bookings/'+id).update({status: s}); }
-        function actDelete(id) { db.ref('bookings/'+id).remove(); }
-
-        document.getElementById('formBooking').onsubmit = function(e) {
+        document.getElementById('bookingForm').onsubmit = function(e) {
             e.preventDefault();
-            if(!selectedDate) return Swal.fire('Error', 'Pilih tanggal dulu!', 'warning');
+            if(!selectedDateStr) return Swal.fire('Perhatian', 'Pilih tanggal di kalender!', 'warning');
             
-            const id = Date.now();
-            const data = {
+            const id = Date.now().toString();
+            const payload = {
                 id: id,
-                tanggal: selectedDate,
-                jam: document.getElementById('inpMulai').value + " - " + document.getElementById('inpSelesai').value,
-                ruangan: document.getElementById('inpRuang').value,
-                agenda: document.getElementById('inpAgenda').value,
-                bidang: document.getElementById('inpBidang').value,
-                pj: document.getElementById('inpPJ').value,
+                tanggal: selectedDateStr,
+                jam: document.getElementById('jamMulai').value + " - " + document.getElementById('jamSelesai').value,
+                ruangan: document.getElementById('ruangan').value,
+                kegiatan: document.getElementById('kegiatan').value,
+                bidang: document.getElementById('bidang').value,
+                pj: document.getElementById('pj').value,
                 status: 'Pending'
             };
 
-            db.ref('bookings/'+id).set(data).then(() => {
-                Swal.fire('Berhasil', 'Pemesanan dikirim!', 'success');
+            db.ref('bookings/' + id).set(payload).then(() => {
+                Swal.fire('Berhasil!', 'Booking telah dikirim ke admin.', 'success');
                 this.reset();
-                selectedDate = "";
+                selectedDateStr = "";
+                document.getElementById('selectedDateDisplay').innerText = "Silakan klik tanggal pada kalender";
                 initCalendar();
             });
         };
 
-        // --- BOOTSTRAP ---
-        window.onload = () => {
-            if(sessionStorage.getItem('e_role')) startApp();
-            setInterval(() => { document.getElementById('timeClock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
-        };
+        function updateStatus(id, stat) { db.ref('bookings/' + id).update({ status: stat }); }
+        function deleteBooking(id) { 
+            Swal.fire({ title: 'Hapus?', text: "Data tidak bisa balik lagi!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#1e3a8a', confirmButtonText: 'Ya, Hapus!' })
+            .then(res => { if(res.isConfirmed) db.ref('bookings/' + id).remove(); });
+        }
+
+        // --- CHECK REFRESH ---
+        window.onload = () => { if(sessionStorage.getItem('e_booking_role')) handleLogin(); };
     </script>
 </body>
 </html>
