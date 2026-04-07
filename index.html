@@ -3,118 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FIX DATA - E-Booking DISKOP</title>
+    <title>SISTEM BOOKING FINAL - DISKOP UKM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         .hidden-auth { display: none !important; }
-        .calendar-day { cursor: pointer !important; }
-        .selected-tgl { background-color: #1e3a8a !important; color: white !important; font-weight: bold; }
-        #btn-kirim { position: relative; z-index: 999; cursor: pointer !important; }
-        tr:nth-child(even) { background-color: #f8fafc; }
+        .calendar-day { cursor: pointer !important; position: relative; z-index: 10; }
+        .selected-tgl { background-color: #1e40af !important; color: white !important; font-weight: 800; border: 2px solid #fbbf24 !important; }
+        #btn-kirim { position: relative; z-index: 50; pointer-events: auto !important; }
+        tr:nth-child(even) { background-color: #f1f5f9; }
+        button { cursor: pointer !important; }
     </style>
 </head>
-<body class="bg-slate-100 font-sans">
+<body class="bg-slate-200 font-sans antialiased">
 
-    <div id="loginGate" class="fixed inset-0 bg-blue-900 flex items-center justify-center z-[10000]">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
-            <h2 class="font-black text-2xl text-blue-900 mb-6 uppercase">Login E-Booking</h2>
-            <input type="text" id="user" placeholder="Username (admin/user)" class="w-full p-4 border-2 rounded-2xl mb-3 outline-none focus:border-blue-500 font-bold">
-            <input type="password" id="pass" placeholder="Password" class="w-full p-4 border-2 rounded-2xl mb-6 outline-none focus:border-blue-500 font-bold">
-            <button onclick="prosesMasuk()" class="w-full bg-blue-700 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-blue-800 active:scale-95 transition-all">MASUK</button>
+    <div id="loginGate" class="fixed inset-0 bg-blue-900 flex items-center justify-center z-[9999]">
+        <div class="bg-white p-10 rounded-[2rem] shadow-2xl w-full max-w-sm text-center border-t-8 border-yellow-500">
+            <h2 class="font-black text-3xl text-blue-900 mb-2 uppercase tracking-tighter">E-Booking</h2>
+            <p class="text-slate-400 text-xs mb-8 font-bold uppercase tracking-widest">Dinas Koperasi & UKM</p>
+            
+            <div class="space-y-4">
+                <input type="text" id="user" placeholder="Username (admin/user)" class="w-full p-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold transition-all">
+                <input type="password" id="pass" placeholder="Password" class="w-full p-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold transition-all">
+                <button onclick="prosesMasuk()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all uppercase tracking-widest">Masuk Sistem</button>
+            </div>
         </div>
     </div>
 
-    <div id="app" class="hidden-auth">
-        <nav class="bg-white p-4 shadow-md flex justify-between items-center sticky top-0 z-[500] border-b-4 border-blue-800">
-            <div class="flex items-center gap-2">
-                <span id="roleBadge" class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded">USER</span>
-                <b class="text-blue-900 uppercase">DISKOP UKM JATENG</b>
+    <div id="app" class="hidden-auth min-h-screen">
+        <nav class="bg-white p-4 shadow-lg flex justify-between items-center sticky top-0 z-[1000] border-b-4 border-blue-900">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-900 text-white p-2 rounded-lg font-black text-xs uppercase tracking-tighter" id="roleLabel">Role</div>
+                <h1 class="font-black text-blue-900 uppercase text-sm tracking-widest hidden md:block">Monitoring Ruangan</h1>
             </div>
-            <button onclick="location.reload()" class="bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold text-xs border border-red-200">LOGOUT</button>
+            <button onclick="location.reload()" class="bg-red-600 text-white px-5 py-2 rounded-xl font-black text-[10px] uppercase shadow-md hover:bg-red-700">Keluar</button>
         </nav>
 
-        <div class="container mx-auto p-4 max-w-6xl">
-            <div id="formInputan" class="hidden-auth bg-white p-6 rounded-3xl shadow-xl mb-10 border border-slate-200">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="bg-slate-50 p-4 rounded-2xl border">
-                        <div class="flex justify-between items-center mb-4 font-black text-blue-900 text-xs">
-                            <button onclick="ubahBulan(-1)"> < </button>
-                            <span id="labelBulan"></span>
-                            <button onclick="ubahBulan(1)"> > </button>
+        <div class="container mx-auto p-4 lg:p-8">
+            <div id="sectionUser" class="hidden-auth bg-white p-6 rounded-[2.5rem] shadow-xl mb-12 border border-slate-200 relative">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                    
+                    <div class="lg:col-span-4 bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                        <div class="flex justify-between items-center mb-6">
+                            <button onclick="navBulan(-1)" class="p-2 bg-white rounded-lg shadow-sm font-black text-blue-900"> < </button>
+                            <span id="labelBulan" class="font-black text-blue-900 uppercase text-sm tracking-widest"></span>
+                            <button onclick="navBulan(1)" class="p-2 bg-white rounded-lg shadow-sm font-black text-blue-900"> > </button>
                         </div>
-                        <div id="gridKalender" class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold"></div>
-                        <div id="tglDisplay" class="mt-4 p-3 bg-blue-50 text-blue-700 text-[10px] font-black rounded-xl text-center border border-blue-200 uppercase">Pilih Tanggal</div>
+                        <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-black text-slate-400 uppercase mb-4">
+                            <div>S</div><div>S</div><div>R</div><div>K</div><div>J</div><div>S</div><div>M</div>
+                        </div>
+                        <div id="gridKalender" class="grid grid-cols-7 gap-2"></div>
+                        <div id="infoTgl" class="mt-6 p-4 bg-blue-100 text-blue-800 rounded-2xl text-center font-black text-[10px] border-2 border-blue-200 uppercase tracking-widest">Pilih Tanggal di Kalender</div>
                     </div>
 
-                    <div class="lg:col-span-2 space-y-3">
-                        <input type="text" id="kegiatan" placeholder="Nama Agenda" class="w-full p-4 border-2 rounded-2xl font-bold bg-slate-50">
-                        <div class="grid grid-cols-2 gap-4">
-                            <select id="ruangan" class="p-4 border-2 rounded-2xl font-bold"><option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option></select>
-                            <select id="bidang" class="p-4 border-2 rounded-2xl font-bold"><option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option></select>
+                    <div class="lg:col-span-8 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="space-y-4">
+                                <label class="font-black text-blue-900 text-[10px] ml-2 uppercase">Informasi Agenda</label>
+                                <input type="text" id="in_kegiatan" placeholder="Nama Kegiatan / Rapat" class="w-full p-4 bg-slate-50 border-2 rounded-2xl font-bold focus:border-blue-500 outline-none">
+                                <select id="in_ruangan" class="w-full p-4 bg-slate-50 border-2 rounded-2xl font-bold outline-none uppercase"><option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option></select>
+                                <select id="in_bidang" class="w-full p-4 bg-slate-50 border-2 rounded-2xl font-bold outline-none uppercase"><option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option></select>
+                            </div>
+                            <div class="space-y-4">
+                                <label class="font-black text-blue-900 text-[10px] ml-2 uppercase">Waktu & Penanggung Jawab</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="time" id="in_mulai" class="w-full p-4 bg-slate-50 border-2 rounded-2xl font-bold outline-none">
+                                    <input type="time" id="in_selesai" class="w-full p-4 bg-slate-50 border-2 rounded-2xl font-bold outline-none">
+                                </div>
+                                <input type="text" id="in_pj" placeholder="Nama PJ (Siapa yang memesan?)" class="w-full p-4 bg-slate-50 border-2 rounded-2xl font-bold focus:border-blue-500 outline-none">
+                                <button id="btn-kirim" onclick="submitBooking()" class="w-full bg-blue-700 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-blue-800 active:scale-95 transition-all uppercase tracking-[0.2em] text-xs">Konfirmasi Booking</button>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="time" id="jamMulai" class="p-4 border-2 rounded-2xl font-bold">
-                            <input type="time" id="jamSelesai" class="p-4 border-2 rounded-2xl font-bold">
-                        </div>
-                        <input type="text" id="pj" placeholder="Penanggung Jawab" class="w-full p-4 border-2 rounded-2xl font-bold">
-                        <button id="btn-kirim" onclick="simpanBooking()" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-green-700 active:scale-95 transition-all uppercase">Kirim Reservasi</button>
                     </div>
+
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border">
-                <div class="p-5 bg-slate-50 border-b font-black text-blue-900 uppercase text-xs tracking-widest">Jadwal Realtime</div>
+            <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200">
+                <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
+                    <h2 class="font-black text-blue-900 uppercase text-xs tracking-[0.3em]">Jadwal Reservasi Realtime</h2>
+                </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-blue-900 text-white text-[10px] uppercase font-black">
+                    <table class="w-full text-left">
+                        <thead class="bg-blue-900 text-white text-[10px] uppercase font-black tracking-widest">
                             <tr>
-                                <th class="p-4">Waktu</th>
-                                <th class="p-4">Ruang</th>
-                                <th class="p-4">Agenda</th>
-                                <th class="p-4 text-center">Status</th>
-                                <th class="p-4 text-center">Aksi</th>
+                                <th class="p-6">Waktu</th>
+                                <th class="p-6">Ruangan</th>
+                                <th class="p-6">Agenda & PJ</th>
+                                <th class="p-6 text-center">Status</th>
+                                <th class="p-6 text-center">Aksi Admin</th>
                             </tr>
                         </thead>
-                        <tbody id="isiTabel" class="divide-y divide-slate-200">
+                        <tbody id="tabelBody" class="text-xs font-bold divide-y divide-slate-100">
                             </tbody>
                     </table>
                 </div>
+                <div id="loader" class="p-10 text-center font-bold text-slate-400 italic">Sedang mengambil data...</div>
             </div>
         </div>
     </div>
 
     <script>
+        // 1. KONEKSI DATABASE (Sesuaikan dengan Database URL-mu)
         const firebaseConfig = { databaseURL: "https://e-booking-eed92-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let roleUser = "";
-        let tglTerpilih = "";
-        let bulanSkrg = new Date();
+        let myRole = "";
+        let tglFix = "";
+        let viewDate = new Date();
 
+        // 2. FUNGSI LOGIN & AUTENTIKASI
         function prosesMasuk() {
             const u = document.getElementById('user').value.toLowerCase();
             const p = document.getElementById('pass').value;
+
             if ((u === 'admin' && p === 'admin') || (u === 'user' && p === 'user')) {
-                roleUser = u;
+                myRole = u;
+                // Hilangkan Modal Login secara permanen dari layar
                 document.getElementById('loginGate').remove();
                 document.getElementById('app').classList.remove('hidden-auth');
-                document.getElementById('roleBadge').innerText = roleUser.toUpperCase();
-                if(roleUser === 'user') document.getElementById('formInputan').classList.remove('hidden-auth');
-                renderKalender();
-                muatDataRealtime();
+                document.getElementById('roleLabel').innerText = "ROLE: " + u.toUpperCase();
+                
+                if(u === 'user') document.getElementById('sectionUser').classList.remove('hidden-auth');
+                
+                initApp();
             } else {
-                alert("Login Salah!");
+                Swal.fire('Error', 'Username atau Password salah!', 'error');
             }
         }
 
+        function initApp() {
+            renderKalender();
+            listenData();
+        }
+
+        // 3. FUNGSI KALENDER (SISTEM KLIK)
         function renderKalender() {
             const grid = document.getElementById('gridKalender');
             grid.innerHTML = "";
-            const y = bulanSkrg.getFullYear(), m = bulanSkrg.getMonth();
+            const y = viewDate.getFullYear();
+            const m = viewDate.getMonth();
             const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
             document.getElementById('labelBulan').innerText = namaBulan[m] + " " + y;
 
@@ -122,89 +153,130 @@
             const lastDate = new Date(y, m + 1, 0).getDate();
             const offset = firstDay === 0 ? 6 : firstDay - 1;
 
-            const hari = ["S","S","R","K","J","S","M"];
-            hari.forEach(h => grid.innerHTML += `<div class="text-slate-400 pb-2">${h}</div>`);
-
             for(let i=0; i<offset; i++) grid.innerHTML += `<div></div>`;
             for(let d=1; d<=lastDate; d++) {
                 const tFull = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const cls = (tFull === tglTerpilih) ? 'selected-tgl' : 'bg-white border-slate-100';
-                grid.innerHTML += `<div onclick="pilihTanggal('${tFull}')" class="calendar-day ${cls} h-9 flex items-center justify-center rounded-lg text-[10px] font-bold border shadow-sm">${d}</div>`;
+                const cls = (tFull === tglFix) ? 'selected-tgl' : 'bg-white text-slate-700';
+                grid.innerHTML += `<div onclick="pilihTgl('${tFull}')" class="calendar-day ${cls} h-10 flex items-center justify-center rounded-xl font-bold shadow-sm border border-slate-100 text-[11px]">${d}</div>`;
             }
         }
 
-        function pilihTanggal(t) { tglTerpilih = t; document.getElementById('tglDisplay').innerText = "TERPILIH: " + t; renderKalender(); }
-        function ubahBulan(n) { bulanSkrg.setMonth(bulanSkrg.getMonth() + n); renderKalender(); }
-
-        function simpanBooking() {
-            const agenda = document.getElementById('kegiatan').value;
-            const j1 = document.getElementById('jamMulai').value;
-            const j2 = document.getElementById('jamSelesai').value;
-            const pj_nama = document.getElementById('pj').value;
-
-            if(!tglTerpilih) return alert("Pilih tanggal di kalender!");
-            if(!agenda || !j1 || !j2 || !pj_nama) return alert("Lengkapi Form!");
-
-            const id = Date.now().toString();
-            db.ref('bookings/' + id).set({
-                id: id, tanggal: tglTerpilih, jam: j1 + " - " + j2,
-                ruangan: document.getElementById('ruangan').value,
-                kegiatan: agenda, bidang: document.getElementById('bidang').value,
-                pj: pj_nama, status: 'Pending'
-            }).then(() => {
-                Swal.fire('Berhasil!', 'Data terkirim', 'success');
-                document.getElementById('kegiatan').value = "";
-                document.getElementById('pj').value = "";
-                tglTerpilih = "";
-                renderKalender();
-            });
+        function pilihTgl(t) {
+            tglFix = t;
+            document.getElementById('infoTgl').innerText = "TANGGAL TERPILIH: " + t;
+            renderKalender();
         }
 
-        // --- BAGIAN YANG DIPERBAIKI: DATA PASTI MUNCUL ---
-        function muatDataRealtime() {
-            console.log("Menghubungkan ke database...");
-            db.ref('bookings').on('value', snap => {
-                const tbody = document.getElementById('isiTabel');
-                tbody.innerHTML = "";
-                
-                const dataRaw = snap.val();
-                console.log("Data diterima:", dataRaw);
+        function navBulan(val) {
+            viewDate.setMonth(viewDate.getMonth() + val);
+            renderKalender();
+        }
 
-                if (!dataRaw) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 italic">Belum ada jadwal hari ini.</td></tr>`;
+        // 4. FUNGSI DATABASE (SEND DATA)
+        function submitBooking() {
+            const keg = document.getElementById('in_kegiatan').value;
+            const jamM = document.getElementById('in_mulai').value;
+            const jamS = document.getElementById('in_selesai').value;
+            const pj = document.getElementById('in_pj').value;
+
+            if(!tglFix) return Swal.fire('Perhatian', 'Pilih tanggal di kalender dulu, Bos!', 'warning');
+            if(!keg || !jamM || !jamS || !pj) return Swal.fire('Data Belum Lengkap', 'Isi semua kolom form reservasi!', 'warning');
+
+            const id = Date.now().toString();
+            const payload = {
+                id: id,
+                tanggal: tglFix,
+                jam: jamM + " - " + jamS,
+                ruangan: document.getElementById('in_ruangan').value,
+                kegiatan: keg,
+                bidang: document.getElementById('in_bidang').value,
+                pj: pj,
+                status: 'Pending'
+            };
+
+            db.ref('bookings/' + id).set(payload).then(() => {
+                Swal.fire('Berhasil!', 'Reservasi sudah dikirim ke Admin.', 'success');
+                // Reset Form
+                document.getElementById('in_kegiatan').value = "";
+                document.getElementById('in_pj').value = "";
+                tglFix = "";
+                renderKalender();
+            }).catch(e => Swal.fire('Database Error', e.message, 'error'));
+        }
+
+        // 5. FUNGSI AMBIL DATA (REALTIME & ANTI GAGAL)
+        function listenData() {
+            db.ref('bookings').on('value', (snap) => {
+                const tbody = document.getElementById('tabelBody');
+                document.getElementById('loader').style.display = 'none';
+                tbody.innerHTML = "";
+
+                const dataVal = snap.val();
+                if(!dataVal) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-bold italic">Belum ada data reservasi di database.</td></tr>`;
                     return;
                 }
 
-                // Ubah objek ke array dan urutkan (Data terbaru di atas)
-                const list = Object.keys(dataRaw).map(key => dataRaw[key]).sort((a,b) => b.id - a.id);
+                // KONVERSI: Mengatasi data yang tersimpan sebagai array atau objek
+                const arrayData = Object.keys(dataVal).map(key => dataVal[key]);
+                // Sortir: Data terbaru (ID terbesar) tampil di atas
+                arrayData.sort((a,b) => b.id - a.id);
 
-                list.forEach(i => {
-                    const statusCls = i.status === 'Approved' ? 'bg-green-500 text-white' : (i.status === 'Rejected' ? 'bg-red-500 text-white' : 'bg-yellow-400 text-blue-900');
-                    const aksiAdmin = (roleUser === 'admin') ? `
-                        <div class="flex gap-1 justify-center">
-                            <button onclick="setStatus('${i.id}','Approved')" class="bg-green-600 text-white px-2 py-1 rounded text-[9px] font-bold">SETUJU</button>
-                            <button onclick="setStatus('${i.id}','Rejected')" class="bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold">TOLAK</button>
-                            <button onclick="hapusBooking('${i.id}')" class="bg-slate-400 text-white px-2 py-1 rounded text-[9px] font-bold">HAPUS</button>
-                        </div>
-                    ` : '<span class="text-slate-300 italic text-[10px]">No Action</span>';
+                arrayData.forEach(item => {
+                    // Warna Status
+                    let sCol = "bg-yellow-100 text-yellow-700";
+                    if(item.status === "Approved") sCol = "bg-green-100 text-green-700";
+                    if(item.status === "Rejected") sCol = "bg-red-100 text-red-700";
+
+                    // Tombol Aksi Admin
+                    let aksi = `<span class="text-slate-300 italic text-[10px]">No Permission</span>`;
+                    if(myRole === 'admin') {
+                        aksi = `
+                            <div class="flex gap-2 justify-center">
+                                <button onclick="updateStat('${item.id}', 'Approved')" class="bg-green-600 text-white px-3 py-1 rounded-lg font-black hover:bg-green-700">ACC</button>
+                                <button onclick="updateStat('${item.id}', 'Rejected')" class="bg-red-600 text-white px-3 py-1 rounded-lg font-black hover:bg-red-700">TOLAK</button>
+                                <button onclick="hapusData('${item.id}')" class="bg-slate-200 text-slate-500 px-3 py-1 rounded-lg font-black hover:bg-slate-300">HAPUS</button>
+                            </div>
+                        `;
+                    }
 
                     tbody.innerHTML += `
-                        <tr class="border-b border-slate-100">
-                            <td class="p-4 font-bold text-[11px]">${i.tanggal}<br><span class="text-blue-600">${i.jam}</span></td>
-                            <td class="p-4 font-black text-blue-900 text-[11px]">${i.ruangan}</td>
-                            <td class="p-4 text-[11px] font-medium uppercase">${i.kegiatan}<br><small class="text-slate-400">${i.pj} (${i.bidang})</small></td>
-                            <td class="p-4 text-center"><span class="${statusCls} px-2 py-1 rounded-lg font-black text-[9px] uppercase">${i.status}</span></td>
-                            <td class="p-4 text-center">${aksiAdmin}</td>
-                        </tr>`;
+                        <tr class="hover:bg-blue-50 transition-all border-b border-slate-50">
+                            <td class="p-6 font-black text-blue-900">${item.tanggal}<br><span class="text-blue-500 font-bold text-[10px]">${item.jam}</span></td>
+                            <td class="p-6 font-black uppercase text-slate-700 tracking-tighter">${item.ruangan}</td>
+                            <td class="p-6 font-medium">
+                                <div class="text-blue-900 font-black uppercase">${item.kegiatan}</div>
+                                <div class="text-slate-400 text-[10px] uppercase">${item.pj} / ${item.bidang}</div>
+                            </td>
+                            <td class="p-6 text-center">
+                                <span class="${sCol} px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest border border-current opacity-80">${item.status}</span>
+                            </td>
+                            <td class="p-6 text-center">${aksi}</td>
+                        </tr>
+                    `;
                 });
-            }, error => {
-                console.error("Firebase Error:", error);
-                alert("Database Error: " + error.message);
             });
         }
 
-        function setStatus(id, s) { db.ref('bookings/' + id).update({status: s}); }
-        function hapusBooking(id) { if(confirm('Hapus?')) db.ref('bookings/' + id).remove(); }
+        // 6. FUNGSI AKSI ADMIN
+        function updateStat(id, stat) {
+            db.ref('bookings/' + id).update({ status: stat });
+        }
+
+        function hapusData(id) {
+            Swal.fire({
+                title: 'Hapus Data?',
+                text: "Data yang dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Ya, Hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    db.ref('bookings/' + id).remove();
+                }
+            });
+        }
     </script>
 </body>
 </html>
