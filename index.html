@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
         body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
@@ -228,18 +230,40 @@
     </div>
 
     <script>
-        let bookings = JSON.parse(localStorage.getItem('db_bookings_final')) || [];
+        // --- CONFIG FIREBASE ---
+        const firebaseConfig = {
+            databaseURL: "ISI_DENGAN_URL_DATABASE_FIREBASE_KAMU" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- APP STATE ---
+        let bookings = [];
         let currentUser = JSON.parse(sessionStorage.getItem('active_user')) || null;
         let currentViewDate = new Date();
         let selectedDateStr = "";
         const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
-        function updateClock() {
-            const clock = document.getElementById('realtimeClock');
-            if(clock) clock.innerText = new Date().toLocaleTimeString('id-ID', { hour12: false });
-        }
-        setInterval(updateClock, 1000);
+        // --- REALTIME SYNC ---
+        db.ref('bookings').on('value', (snapshot) => {
+            const data = snapshot.val();
+            bookings = data ? Object.values(data).reverse() : [];
+            renderTable();
+        });
 
+        // --- AUTH ---
+        function handleLogin() {
+            const u = document.getElementById('username').value.toLowerCase();
+            const p = document.getElementById('password').value;
+            if ((u === 'admin' && p === 'admin') || (u === 'user' && p === 'user')) {
+                currentUser = { role: u };
+                sessionStorage.setItem('active_user', JSON.stringify(currentUser));
+                initApp();
+            } else { Swal.fire('Error', 'Login Gagal', 'error'); }
+        }
+        function handleLogout() { sessionStorage.clear(); window.location.reload(); }
+
+        // --- TIME PICKER LOGIC ---
         function generateTimeOptions(targetHours, targetMins, inputId) {
             const hDiv = document.getElementById(targetHours);
             const mDiv = document.getElementById(targetMins);
@@ -268,14 +292,12 @@
         }
 
         function toggleTimePicker(id) {
-            const el = document.getElementById(id);
-            const isVisible = el.style.display === 'block';
             document.querySelectorAll('.time-picker-overlay').forEach(p => p.style.display = 'none');
-            el.style.display = isVisible ? 'none' : 'block';
+            document.getElementById(id).style.display = 'block';
         }
-
         function closeTimePicker(id) { document.getElementById(id).style.display = 'none'; }
 
+        // --- APP LOGIC ---
         function initApp() {
             if (!currentUser) return;
             document.getElementById('loginModal').classList.add('hidden-auth');
@@ -287,17 +309,14 @@
                 generateTimeOptions('hoursSelesai', 'minsSelesai', 'jamSelesai');
             }
             initCalendar();
-            renderTable();
         }
 
         function initCalendar() {
             const grid = document.getElementById('calendarGrid');
-            const monthLabel = document.getElementById('calendarMonth');
-            if(!grid) return;
-            grid.innerHTML = '';
+            if(!grid) return; grid.innerHTML = '';
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
-            monthLabel.innerText = `${months[month]} ${year}`;
+            document.getElementById('calendarMonth').innerText = `${months[month]} ${year}`;
             const firstDay = new Date(year, month, 1).getDay();
             const days = new Date(year, month + 1, 0).getDate();
             let offset = firstDay === 0 ? 6 : firstDay - 1;
@@ -318,24 +337,9 @@
         function prevMonth() { currentViewDate.setMonth(currentViewDate.getMonth() - 1); initCalendar(); }
         function nextMonth() { currentViewDate.setMonth(currentViewDate.getMonth() + 1); initCalendar(); }
 
-        function handleLogin() {
-            const u = document.getElementById('username').value.toLowerCase();
-            const p = document.getElementById('password').value;
-            if ((u === 'admin' && p === 'admin') || (u === 'user' && p === 'user')) {
-                currentUser = { role: u };
-                sessionStorage.setItem('active_user', JSON.stringify(currentUser));
-                initApp();
-            } else {
-                Swal.fire('Gagal', 'Username/Password salah', 'error');
-            }
-        }
-
-        function handleLogout() { sessionStorage.clear(); window.location.reload(); }
-
         function renderTable() {
             const body = document.getElementById('bookingTableBody');
-            if(!body) return;
-            body.innerHTML = '';
+            if(!body) return; body.innerHTML = '';
             const filter = document.getElementById('filterRuangan').value;
             let data = filter === 'Semua' ? bookings : bookings.filter(b => b.ruangan === filter);
             data.forEach((b, i) => {
@@ -343,39 +347,36 @@
                     <tr>
                         <td class="p-6 font-black">${i+1}</td>
                         <td class="p-6"><b>${b.tanggal}</b><br><small>${b.jam}</small></td>
-                        <td class="p-6">${b.ruangan}</td>
+                        <td class="p-6 font-bold text-blue-900">${b.ruangan}</td>
                         <td class="p-6">${b.kegiatan}</td>
-                        <td class="p-6">${b.pj}</td>
-                        <td class="p-6 text-center"><span class="${b.status === 'Approved' ? 'status-approved' : 'status-pending'} px-3 py-1 rounded-full text-[9px] font-black">${b.status}</span></td>
-                        <td class="p-6 text-center">${currentUser.role === 'admin' ? `<button onclick="changeStatus(${b.id}, 'Approved')" class="bg-green-600 text-white p-2 rounded">✔</button>` : '-'}</td>
+                        <td class="p-6 text-center"><span class="${b.status === 'Approved' ? 'status-approved' : 'status-pending'} px-3 py-1 rounded-full font-black text-[9px]">${b.status}</span></td>
+                        <td class="p-6 text-center">
+                            ${currentUser.role === 'admin' ? `
+                                <button onclick="db.ref('bookings/${b.id}').update({status:'Approved'})" class="bg-green-600 text-white p-1 rounded-lg text-[10px] w-6 h-6">✔</button>
+                                <button onclick="db.ref('bookings/${b.id}').remove()" class="bg-red-600 text-white p-1 rounded-lg text-[10px] w-6 h-6">✖</button>
+                            ` : '-'}
+                        </td>
                     </tr>`;
             });
         }
 
         document.getElementById('bookingForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
+            const id = Date.now();
             const nb = {
-                id: Date.now(),
+                id: id,
                 tanggal: selectedDateStr,
                 jam: document.getElementById('jamMulai').value + ' - ' + document.getElementById('jamSelesai').value,
                 ruangan: document.getElementById('ruangan').value,
                 kegiatan: document.getElementById('kegiatan').value,
-                bidang: document.getElementById('bidang').value,
                 pj: document.getElementById('pj').value,
                 status: 'Pending'
             };
-            bookings.unshift(nb);
-            localStorage.setItem('db_bookings_final', JSON.stringify(bookings));
-            renderTable();
-            Swal.fire('Berhasil', 'Permohonan dikirim', 'success');
+            db.ref('bookings/' + id).set(nb).then(() => {
+                this.reset();
+                Swal.fire('Berhasil', 'Pemesanan terkirim ke Cloud!', 'success');
+            });
         });
-
-        function changeStatus(id, s) {
-            const idx = bookings.findIndex(x => x.id === id);
-            bookings[idx].status = s;
-            localStorage.setItem('db_bookings_final', JSON.stringify(bookings));
-            renderTable();
-        }
 
         if (currentUser) initApp();
     </script>
