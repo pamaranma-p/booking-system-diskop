@@ -3,94 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Booking DISKOP UKM - STABLE VERSION</title>
+    <title>E-Booking DISKOP UKM - FIX URL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         .hidden-auth { display: none !important; }
-        .calendar-day { cursor: pointer !important; z-index: 20; position: relative; }
-        .selected-tgl { background-color: #1e3a8a !important; color: white !important; font-weight: bold; transform: scale(1.1); }
-        #btn-kirim { cursor: pointer !important; pointer-events: auto !important; position: relative; z-index: 50; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border-bottom: 1px solid #e2e8f0; }
+        .calendar-day { cursor: pointer !important; transition: 0.2s; }
+        .selected-tgl { background: #1e3a8a !important; color: white !important; font-weight: 800; border: 2px solid #fbbf24 !important; }
+        #btn-kirim { cursor: pointer !important; position: relative; z-index: 100; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans">
+<body class="bg-slate-100 font-sans">
 
-    <div id="loginGate" class="fixed inset-0 bg-blue-900 flex items-center justify-center z-[10000]">
-        <div class="bg-white p-10 rounded-[2rem] shadow-2xl w-full max-w-sm text-center">
-            <h2 class="font-black text-2xl text-blue-900 mb-6 uppercase">Login System</h2>
-            <input type="text" id="user" placeholder="Username" class="w-full p-4 bg-slate-100 border-2 rounded-2xl mb-3 outline-none focus:border-blue-500 font-bold">
-            <input type="password" id="pass" placeholder="Password" class="w-full p-4 bg-slate-100 border-2 rounded-2xl mb-6 outline-none focus:border-blue-500 font-bold">
-            <button onclick="prosesMasuk()" class="w-full bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-blue-800 transition-all">MASUK</button>
+    <div id="loginGate" class="fixed inset-0 bg-blue-900 flex items-center justify-center z-[9999]">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
+            <h2 class="font-black text-2xl text-blue-900 mb-6 uppercase">Login E-Booking</h2>
+            <input type="text" id="user" placeholder="Username" class="w-full p-4 border-2 rounded-2xl mb-3 outline-none font-bold bg-slate-50">
+            <input type="password" id="pass" placeholder="Password" class="w-full p-4 border-2 rounded-2xl mb-6 outline-none font-bold bg-slate-50">
+            <button onclick="prosesMasuk()" class="w-full bg-blue-700 text-white font-black py-4 rounded-2xl shadow-xl uppercase">Masuk</button>
         </div>
     </div>
 
     <div id="app" class="hidden-auth">
-        <nav class="bg-white p-4 shadow-md flex justify-between items-center sticky top-0 z-[500] border-b-4 border-blue-900">
-            <div class="flex items-center gap-2">
-                <span id="roleBadge" class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded">ROLE</span>
-                <b class="text-blue-900 uppercase text-sm">DISKOP UKM JATENG</b>
-            </div>
-            <button onclick="location.reload()" class="bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold text-xs">LOGOUT</button>
+        <nav class="bg-white p-4 shadow flex justify-between items-center sticky top-0 z-[500] border-b-4 border-blue-900">
+            <b class="text-blue-900 uppercase text-xs tracking-widest">DISKOP UKM JATENG - <span id="roleText"></span></b>
+            <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-1 rounded-lg font-bold text-xs uppercase">Logout</button>
         </nav>
 
         <div class="container mx-auto p-4 max-w-6xl">
-            <div id="sectionInput" class="hidden-auth bg-white p-6 rounded-[2rem] shadow-xl mb-10 border">
+            <div id="areaUser" class="hidden-auth bg-white p-6 rounded-3xl shadow-xl mb-10 border">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="bg-slate-50 p-4 rounded-2xl border">
-                        <div class="flex justify-between items-center mb-4 font-black text-blue-900 text-xs">
+                        <div class="flex justify-between items-center mb-4 font-black text-blue-900 text-xs uppercase">
                             <button onclick="navBulan(-1)"> < </button>
                             <span id="labelBulan"></span>
                             <button onclick="navBulan(1)"> > </button>
                         </div>
                         <div id="gridKalender" class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold"></div>
-                        <div id="tglPilih" class="mt-4 p-3 bg-blue-50 text-blue-700 text-[10px] font-black rounded-xl text-center border border-blue-200">PILIH TANGGAL</div>
+                        <div id="tglShow" class="mt-4 p-3 bg-blue-800 text-white text-[10px] font-bold rounded-xl text-center uppercase">Pilih Tanggal</div>
                     </div>
-
                     <div class="lg:col-span-2 space-y-4">
-                        <input type="text" id="f_kegiatan" placeholder="Nama Agenda / Kegiatan" class="w-full p-4 border-2 rounded-2xl font-bold bg-slate-50 outline-none focus:border-blue-500">
+                        <input type="text" id="f_keg" placeholder="Nama Agenda" class="w-full p-4 border-2 rounded-2xl font-bold bg-slate-50">
                         <div class="grid grid-cols-2 gap-4">
-                            <select id="f_ruangan" class="p-4 border-2 rounded-2xl font-bold bg-slate-50 outline-none"><option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option></select>
-                            <select id="f_bidang" class="p-4 border-2 rounded-2xl font-bold bg-slate-50 outline-none"><option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option></select>
+                            <select id="f_ruang" class="p-4 border-2 rounded-2xl font-bold uppercase text-xs"><option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option></select>
+                            <select id="f_bidang" class="p-4 border-2 rounded-2xl font-bold uppercase text-xs"><option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option></select>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
-                            <input type="time" id="f_mulai" class="p-4 border-2 rounded-2xl font-bold bg-slate-50">
-                            <input type="time" id="f_selesai" class="p-4 border-2 rounded-2xl font-bold bg-slate-50">
+                            <input type="time" id="f_m" class="p-4 border-2 rounded-2xl font-bold bg-slate-50">
+                            <input type="time" id="f_s" class="p-4 border-2 rounded-2xl font-bold bg-slate-50">
                         </div>
-                        <input type="text" id="f_pj" placeholder="Penanggung Jawab" class="w-full p-4 border-2 rounded-2xl font-bold bg-slate-50 outline-none">
-                        <button id="btn-kirim" onclick="simpanData()" class="w-full bg-green-600 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-green-700 active:scale-95 transition-all uppercase tracking-widest">Konfirmasi & Kirim Reservasi</button>
+                        <input type="text" id="f_pj" placeholder="Penanggung Jawab" class="w-full p-4 border-2 rounded-2xl font-bold bg-slate-50">
+                        <button id="btn-kirim" onclick="simpanKeDB()" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-xl uppercase">Konfirmasi Reservasi</button>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border">
-                <div class="p-6 bg-slate-50 border-b font-black text-blue-900 uppercase text-xs tracking-widest">Jadwal Realtime</div>
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border">
+                <div class="p-5 bg-slate-50 border-b font-black text-blue-900 uppercase text-xs">Jadwal Realtime</div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-blue-900 text-white text-[10px] uppercase font-black">
-                            <tr>
-                                <th class="p-5">Waktu</th>
-                                <th class="p-5">Ruang</th>
-                                <th class="p-5">Agenda</th>
-                                <th class="p-5 text-center">Status</th>
-                                <th class="p-5 text-center">Aksi Admin</th>
-                            </tr>
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-blue-900 text-white uppercase">
+                            <tr><th class="p-4">Waktu</th><th class="p-4">Ruang</th><th class="p-4">Agenda</th><th class="p-4 text-center">Status</th><th class="p-4 text-center">Aksi Admin</th></tr>
                         </thead>
-                        <tbody id="tabelBody" class="divide-y divide-slate-100">
-                            </tbody>
+                        <tbody id="tabelBody" class="divide-y"></tbody>
                     </table>
                 </div>
-                <div id="msgStatus" class="p-10 text-center font-bold text-slate-400 italic">Menghubungkan ke Database...</div>
+                <div id="loader" class="p-10 text-center font-bold text-slate-400">Menunggu Data...</div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. KONEKSI KE DATABASE ANDA ---
-        const firebaseConfig = { databaseURL: "https://e-booking-eed92-default-rtdb.firebaseio.com/" };
+        // --- FIX: URL DATABASE DISESUAIKAN DENGAN GAMBAR ANDA ---
+        const firebaseConfig = { 
+            databaseURL: "https://e-booking-eed92-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -98,28 +87,20 @@
         let tglFix = "";
         let viewDate = new Date();
 
-        // --- 2. LOGIN SISTEM ---
         function prosesMasuk() {
             const u = document.getElementById('user').value.toLowerCase();
             const p = document.getElementById('pass').value;
             if ((u === 'admin' && p === 'admin') || (u === 'user' && p === 'user')) {
                 myRole = u;
-                document.getElementById('loginGate').remove(); // Hapus total layer login
+                document.getElementById('loginGate').remove();
                 document.getElementById('app').classList.remove('hidden-auth');
-                document.getElementById('roleBadge').innerText = "ROLE: " + u.toUpperCase();
-                if(u === 'user') document.getElementById('sectionInput').classList.remove('hidden-auth');
-                jalankanApp();
-            } else {
-                Swal.fire('Gagal', 'Username/Password Salah!', 'error');
-            }
+                document.getElementById('roleText').innerText = u.toUpperCase();
+                if(u === 'user') document.getElementById('areaUser').classList.remove('hidden-auth');
+                renderKalender();
+                tarikData();
+            } else { alert("User/Pass Salah!"); }
         }
 
-        function jalankanApp() {
-            renderKalender();
-            muatData();
-        }
-
-        // --- 3. SISTEM KALENDER ---
         function renderKalender() {
             const grid = document.getElementById('gridKalender');
             grid.innerHTML = "";
@@ -127,102 +108,80 @@
             const nBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
             document.getElementById('labelBulan').innerText = nBulan[m] + " " + y;
 
-            const firstDay = new Date(y, m, 1).getDay();
-            const lastDate = new Date(y, m + 1, 0).getDate();
-            const offset = firstDay === 0 ? 6 : firstDay - 1;
+            const offset = new Date(y, m, 1).getDay() === 0 ? 6 : new Date(y, m, 1).getDay() - 1;
+            const last = new Date(y, m + 1, 0).getDate();
 
             const h = ["S","S","R","K","J","S","M"];
-            h.forEach(hari => grid.innerHTML += `<div class="text-slate-400 pb-2">${hari}</div>`);
+            h.forEach(x => grid.innerHTML += `<div class="text-slate-300 pb-2">${x}</div>`);
 
             for(let i=0; i<offset; i++) grid.innerHTML += `<div></div>`;
-            for(let d=1; d<=lastDate; d++) {
-                const tFull = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const cls = (tFull === tglFix) ? 'selected-tgl' : 'bg-white border-slate-100';
-                grid.innerHTML += `<div onclick="pilihTgl('${tFull}')" class="calendar-day ${cls} h-10 flex items-center justify-center rounded-xl text-[10px] font-bold border shadow-sm">${d}</div>`;
+            for(let d=1; d<=last; d++) {
+                const t = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const cls = (t === tglFix) ? 'selected-tgl' : 'bg-white border-slate-100';
+                grid.innerHTML += `<div onclick="setT('${t}')" class="calendar-day ${cls} h-10 flex items-center justify-center rounded-xl font-bold border shadow-sm">${d}</div>`;
             }
         }
 
-        function pilihTgl(t) { tglFix = t; document.getElementById('tglPilih').innerText = "TERPILIH: " + t; renderKalender(); }
+        function setT(t) { tglFix = t; document.getElementById('tglShow').innerText = "TGL: " + t; renderKalender(); }
         function navBulan(n) { viewDate.setMonth(viewDate.getMonth() + n); renderKalender(); }
 
-        // --- 4. KIRIM DATA KE FIREBASE ---
-        function simpanData() {
-            const agenda = document.getElementById('f_kegiatan').value;
-            const jM = document.getElementById('f_mulai').value;
-            const jS = document.getElementById('f_selesai').value;
-            const pj_nama = document.getElementById('f_pj').value;
+        function simpanKeDB() {
+            const keg = document.getElementById('f_keg').value;
+            const pj = document.getElementById('f_pj').value;
+            const m = document.getElementById('f_m').value;
+            const s = document.getElementById('f_s').value;
 
-            if(!tglFix) return alert("Pilih tanggal dulu di kalender!");
-            if(!agenda || !jM || !jS || !pj_nama) return alert("Lengkapi semua kolom!");
+            if(!tglFix || !keg || !pj || !m || !s) return alert("Lengkapi Data!");
 
             const id = Date.now().toString();
             db.ref('bookings/' + id).set({
-                id: id, tanggal: tglFix, jam: jM + " - " + jS,
-                ruangan: document.getElementById('f_ruangan').value,
-                kegiatan: agenda, bidang: document.getElementById('f_bidang').value,
-                pj: pj_nama, status: 'Pending'
+                id: id, tanggal: tglFix, jam: m + " - " + s,
+                ruangan: document.getElementById('f_ruang').value,
+                kegiatan: keg, bidang: document.getElementById('f_bidang').value,
+                pj: pj, status: 'Pending'
             }).then(() => {
-                Swal.fire('Berhasil', 'Reservasi Terkirim!', 'success');
-                document.getElementById('f_kegiatan').value = "";
+                Swal.fire('Sip!', 'Data terkirim!', 'success');
+                document.getElementById('f_keg').value = "";
                 document.getElementById('f_pj').value = "";
-                tglFix = "";
-                renderKalender();
-            });
+                tglFix = ""; renderKalender();
+            }).catch(err => alert("Gagal Simpan: " + err.message));
         }
 
-        // --- 5. MUAT DATA REALTIME (FIX ANTI GAGAL) ---
-        function muatData() {
-            db.ref('bookings').on('value', (snapshot) => {
+        function tarikData() {
+            db.ref('bookings').on('value', (snap) => {
                 const tbody = document.getElementById('tabelBody');
-                const loader = document.getElementById('msgStatus');
+                const loader = document.getElementById('loader');
                 tbody.innerHTML = "";
                 
-                const dataRaw = snapshot.val();
-                
-                if (!dataRaw) {
-                    loader.innerText = "Belum ada data reservasi.";
-                    loader.style.display = "block";
-                    return;
-                }
-
+                const val = snap.val();
+                if(!val) { loader.innerText = "Belum Ada Data."; return; }
                 loader.style.display = "none";
 
-                // KONVERSI DATA: Mengubah Objek Firebase menjadi Array agar bisa di-looping
-                let listData = [];
-                if (Array.isArray(dataRaw)) {
-                    listData = dataRaw.filter(item => item !== null);
-                } else {
-                    listData = Object.keys(dataRaw).map(key => dataRaw[key]);
-                }
+                const list = Object.keys(val).map(k => val[k]).sort((a,b) => b.id - a.id);
 
-                // Sorting: Paling baru di atas
-                listData.sort((a,b) => b.id - a.id);
-
-                listData.forEach(i => {
-                    const statusColor = i.status === 'Approved' ? 'bg-green-500 text-white' : (i.status === 'Rejected' ? 'bg-red-500 text-white' : 'bg-yellow-400 text-blue-900');
-                    
-                    const aksiAdmin = (myRole === 'admin') ? `
+                list.forEach(i => {
+                    const stCls = i.status === 'Approved' ? 'bg-green-500 text-white' : (i.status === 'Rejected' ? 'bg-red-500 text-white' : 'bg-yellow-400 text-blue-900');
+                    const aksi = (myRole === 'admin') ? `
                         <div class="flex gap-1 justify-center">
-                            <button onclick="updateStat('${i.id}','Approved')" class="bg-green-600 text-white px-2 py-1 rounded text-[9px] font-bold">ACC</button>
-                            <button onclick="updateStat('${i.id}','Rejected')" class="bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold">TOLAK</button>
-                            <button onclick="hapusData('${i.id}')" class="bg-slate-400 text-white px-2 py-1 rounded text-[9px] font-bold">HAPUS</button>
-                        </div>
-                    ` : '<span class="text-slate-300 italic text-[9px]">User Mode</span>';
+                            <button onclick="upStat('${i.id}','Approved')" class="bg-green-600 text-white px-2 py-1 rounded text-[9px]">ACC</button>
+                            <button onclick="upStat('${i.id}','Rejected')" class="bg-red-600 text-white px-2 py-1 rounded text-[9px]">TOLAK</button>
+                            <button onclick="hapus('${i.id}')" class="bg-slate-200 text-slate-500 px-2 py-1 rounded text-[9px]">Hapus</button>
+                        </div>` : '-';
 
                     tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition-all">
-                            <td class="p-5 font-bold text-[11px]">${i.tanggal}<br><small class="text-blue-600">${i.jam}</small></td>
-                            <td class="p-5 font-black text-blue-900 text-[11px] uppercase">${i.ruangan}</td>
-                            <td class="p-5 text-[11px] font-medium uppercase">${i.kegiatan}<br><small class="text-slate-400 font-bold">${i.pj} (${i.bidang})</small></td>
-                            <td class="p-5 text-center"><span class="${statusColor} px-3 py-1 rounded-lg font-black text-[9px] uppercase">${i.status}</span></td>
-                            <td class="p-5 text-center">${aksiAdmin}</td>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold">${i.tanggal}<br><small class="text-blue-500">${i.jam}</small></td>
+                            <td class="p-4 font-black uppercase text-blue-900">${i.ruangan}</td>
+                            <td class="p-4 uppercase">${i.kegiatan}<br><small class="text-slate-400">${i.pj} (${i.bidang})</small></td>
+                            <td class="p-4 text-center"><span class="${stCls} px-2 py-1 rounded-full font-bold text-[9px] uppercase">${i.status}</span></td>
+                            <td class="p-4 text-center">${aksi}</td>
                         </tr>`;
                 });
             });
         }
 
-        function updateStat(id, s) { db.ref('bookings/' + id).update({status: s}); }
-        function hapusData(id) { if(confirm('Hapus data ini?')) db.ref('bookings/' + id).remove(); }
+        function upStat(id, s) { db.ref('bookings/' + id).update({status: s}); }
+        function hapus(id) { if(confirm('Hapus?')) db.ref('bookings/' + id).remove(); }
     </script>
 </body>
 </html>
