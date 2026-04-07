@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Booking Ruang - Dinas Koperasi & UKM Jateng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .bg-jateng { background-color: #1e3a8a; }
+        .hidden-auth { display: none !important; }
+        .status-pending { background-color: #fef08a; color: #854d0e; }
+        .status-approved { background-color: #dcfce7; color: #166534; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+        
+        .calendar-day { transition: all 0.2s; cursor: pointer; height: 35px; width: 35px; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 10px; }
+        .calendar-day:hover:not(.empty) { background-color: #eff6ff; color: #1e40af; }
+        .calendar-day.selected { background-color: #1e3a8a !important; color: white !important; box-shadow: 0 4px 6px -1px rgb(30 58 138 / 0.3); }
+        .calendar-day.today { border: 2px solid #facc15; font-weight: 800; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div id="loginModal" class="fixed inset-0 bg-jateng z- flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="p-8 text-center border-b bg-gray-50">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-16 mx-auto mb-4">
+                <h2 class="text-xl font-black text-blue-900 uppercase tracking-tighter">E-Booking Ruangan</h2>
+                <p class="text-gray-500 text-[10px] uppercase font-bold tracking-widest mt-1">Dinas Koperasi & UKM Jawa Tengah</p>
+            </div>
+            <div class="p-8 space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Username</label>
+                    <input type="text" id="username" placeholder="admin / user" class="w-full p-4 border-2 rounded-2xl outline-none focus:border-blue-600 transition bg-gray-50 mt-1">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" class="w-full p-4 border-2 rounded-2xl outline-none focus:border-blue-600 transition bg-gray-50 mt-1">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-blue-700 text-white font-black py-4 rounded-2xl hover:bg-blue-800 transition shadow-xl uppercase mt-2 tracking-widest text-sm">Masuk Sistem</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appContent" class="hidden-auth">
+        <nav class="bg-white shadow-sm sticky top-0 z-50 border-b-4 border-yellow-500">
+            <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-10">
+                    <div>
+                        <h1 class="font-black text-blue-900 text-xs leading-none">DISKOP UKM</h1>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase italic">Provinsi Jawa Tengah</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="roleLabel" class="text-[10px] font-black bg-blue-50 text-blue-700 px-4 py-2 rounded-full border border-blue-100 uppercase tracking-widest"></span>
+                    <button onclick="handleLogout()" class="bg-red-50 text-red-600 p-2.5 rounded-xl hover:bg-red-600 hover:text-white transition border border-red-100">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <header class="bg-jateng text-white py-16 px-6 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                <i class="fas fa-building text-[200px] absolute -bottom-10 -right-10"></i>
+            </div>
+            <div class="relative z-10">
+                <h2 class="text-3xl md:text-4xl font-black uppercase mb-2 tracking-tighter">Monitoring & Reservasi</h2>
+                <p class="opacity-80 text-sm font-light max-w-lg mx-auto leading-relaxed">Kelola penggunaan ruang rapat dengan lebih teratur, transparan, dan efisien.</p>
+            </div>
+        </header>
+
+        <section class="container mx-auto px-6 -mt-10 mb-12 relative z-20">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-3xl shadow-xl border-b-4 border-blue-600 transform hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-users text-blue-600"></i>
+                        </div>
+                        <span class="text-[9px] font-black text-gray-300 uppercase">Ruangan 01</span>
+                    </div>
+                    <h4 class="font-black text-blue-900 text-xs mb-1">GATOTKACA</h4>
+                    <p class="text-2xl font-black text-gray-800">70 <small class="text-[10px] font-bold text-gray-400 uppercase">Pax</small></p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl shadow-xl border-b-4 border-green-500 transform hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-handshake text-green-600"></i>
+                        </div>
+                        <span class="text-[9px] font-black text-gray-300 uppercase">Ruangan 02</span>
+                    </div>
+                    <h4 class="font-black text-blue-900 text-xs mb-1">ARJUNA</h4>
+                    <p class="text-2xl font-black text-gray-800">25 <small class="text-[10px] font-bold text-gray-400 uppercase">Pax</small></p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl shadow-xl border-b-4 border-yellow-500 transform hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-comments text-yellow-600"></i>
+                        </div>
+                        <span class="text-[9px] font-black text-gray-300 uppercase">Ruangan 03</span>
+                    </div>
+                    <h4 class="font-black text-blue-900 text-xs mb-1">ARIMBI</h4>
+                    <p class="text-2xl font-black text-gray-800">15 <small class="text-[10px] font-bold text-gray-400 uppercase">Pax</small></p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl shadow-xl border-b-4 border-purple-500 transform hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-microphone-alt text-purple-600"></i>
+                        </div>
+                        <span class="text-[9px] font-black text-gray-300 uppercase">Media</span>
+                    </div>
+                    <h4 class="font-black text-blue-900 text-xs mb-1">PODCAST</h4>
+                    <p class="text-2xl font-black text-gray-800">4 <small class="text-[10px] font-bold text-gray-400 uppercase">Pax</small></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container mx-auto px-6 mb-12">
+            <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                <h3 class="font-black text-blue-900 mb-8 flex items-center text-sm uppercase tracking-widest">
+                    <span class="w-8 h-1 bg-yellow-500 mr-3 rounded-full"></span> Panduan Fungsi & Peruntukan Ruangan
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="border-l-2 border-blue-100 pl-4">
+                        <h4 class="font-black text-blue-800 text-[11px] mb-2 uppercase tracking-tighter">Ruang Gatotkaca</h4>
+                        <p class="text-[11px] text-gray-500 leading-relaxed italic">Kegiatan skala besar: Sosialisasi, Workshop, Rapat Pleno, atau acara formal kedinasan tamu luar daerah.</p>
+                    </div>
+                    <div class="border-l-2 border-green-100 pl-4">
+                        <h4 class="font-black text-green-800 text-[11px] mb-2 uppercase tracking-tighter">Ruang Arjuna</h4>
+                        <p class="text-[11px] text-gray-500 leading-relaxed italic">Rapat Koordinasi (Rakor) antar bidang, Audiensi stakeholder menengah, atau pertemuan teknis meja formal.</p>
+                    </div>
+                    <div class="border-l-2 border-yellow-100 pl-4">
+                        <h4 class="font-black text-yellow-800 text-[11px] mb-2 uppercase tracking-tighter">Ruang Arimbi</h4>
+                        <p class="text-[11px] text-gray-500 leading-relaxed italic">Rapat Internal rutin, Briefing pagi, diskusi kelompok kecil, atau pertemuan terbatas semi-formal.</p>
+                    </div>
+                    <div class="border-l-2 border-purple-100 pl-4">
+                        <h4 class="font-black text-purple-800 text-[11px] mb-2 uppercase tracking-tighter">Ruang Podcast</h4>
+                        <p class="text-[11px] text-gray-500 leading-relaxed italic">Produksi konten digital, Interview eksklusif, Live streaming, atau perekaman konten promosi UMKM.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="userFormSection" class="container mx-auto px-6 hidden-auth mb-12">
+            <div class="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+                <div class="bg-gray-50 p-6 border-b flex items-center justify-between">
+                    <h3 class="font-black text-blue-900 flex items-center text-sm uppercase tracking-widest">
+                        <i class="fas fa-calendar-plus mr-3 text-yellow-500 text-lg"></i> Buat Reservasi Baru
+                    </h3>
+                </div>
+                
+                <form id="bookingForm" class="grid grid-cols-1 lg:grid-cols-3">
+                    <div class="p-8 lg:border-r border-gray-100 bg-white">
+                        <label class="text-[10px] font-black text-gray-400 uppercase mb-4 block tracking-widest">1. Pilih Tanggal</label>
+                        <div class="bg-gray-50 p-4 rounded-3xl border border-gray-200">
+                            <div class="flex justify-between items-center mb-4 px-2">
+                                <button type="button" onclick="prevMonth()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white text-blue-900 transition"><i class="fas fa-chevron-left text-xs"></i></button>
+                                <h4 id="calendarMonth" class="font-black text-blue-900 uppercase text-[11px] tracking-widest">April 2026</h4>
+                                <button type="button" onclick="nextMonth()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white text-blue-900 transition"><i class="fas fa-chevron-right text-xs"></i></button>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-black text-gray-300 mb-2 uppercase">
+                                <div>S</div><div>S</div><div>R</div><div>K</div><div>J</div><div>S</div><div>M</div>
+                            </div>
+                            <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+                        </div>
+                        <input type="hidden" id="tanggal" required>
+                        <div id="selectedDateDisplay" class="mt-4 p-3 bg-blue-50 rounded-2xl text-[10px] font-bold text-blue-700 text-center border border-blue-100">
+                            Silakan klik tanggal pada kalender
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 p-8 space-y-5 bg-white">
+                        <label class="text-[10px] font-black text-gray-400 uppercase block tracking-widest">2. Lengkapi Detail Kegiatan</label>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="md:col-span-2">
+                                <input type="text" id="kegiatan" placeholder="Judul Agenda / Nama Kegiatan" required class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-500 focus:bg-white transition text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Ruangan</label>
+                                <select id="ruangan" class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-sm outline-none focus:border-blue-500">
+                                    <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Bidang Pengusul</label>
+                                <select id="bidang" class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-sm outline-none focus:border-blue-500">
+                                    <option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option><option>RESTRUKTURISASI</option><option>PEMASARAN</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-1/2">
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block text-center">Mulai</label>
+                                    <input type="time" id="jamMulai" required class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl text-sm font-bold outline-none focus:border-blue-500">
+                                </div>
+                                <div class="w-1/2">
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block text-center">Selesai</label>
+                                    <input type="time" id="jamSelesai" required class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl text-sm font-bold outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Penanggung Jawab (PJ)</label>
+                                <input type="text" id="pj" placeholder="Nama Lengkap" required class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-500 text-sm font-bold">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-blue-700 text-white font-black py-5 rounded-2xl hover:bg-blue-800 transition uppercase shadow-xl shadow-blue-100 tracking-widest text-sm mt-4">
+                            Konfirmasi & Kirim Booking
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="container mx-auto px-6 py-12">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+                <div class="p-8 border-b flex flex-wrap justify-between items-center bg-white gap-6">
+                    <div>
+                        <h3 class="font-black text-blue-900 uppercase italic text-lg tracking-tighter">Jadwal Penggunaan Ruangan</h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Update real-time ketersediaan ruang</p>
+                    </div>
+                    <div class="flex items-center space-x-3 bg-gray-50 p-2 rounded-2xl border">
+                        <i class="fas fa-filter text-gray-400 ml-2"></i>
+                        <select id="filterRuangan" onchange="renderTable()" class="text-[11px] font-black p-2 bg-transparent outline-none uppercase tracking-widest">
+                            <option value="Semua">Semua Ruangan</option>
+                            <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-blue-900 text-white text-[9px] uppercase font-black tracking-[0.2em]">
+                                <th class="p-6">No</th>
+                                <th class="p-6">Waktu & Tanggal</th>
+                                <th class="p-6">Ruangan</th>
+                                <th class="p-6">Agenda Kegiatan</th>
+                                <th class="p-6">PIC / Bidang</th>
+                                <th class="p-6 text-center">Status</th>
+                                <th class="p-6 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingTableBody" class="text-xs divide-y divide-gray-100">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        let bookings = JSON.parse(localStorage.getItem('db_bookings_final')) || [
+            { id: 1, tanggal: '2026-04-01', jam: '08:00 - 10:00', ruangan: 'GATOTKACA', kegiatan: 'Rapat Pleno Dinas', bidang: 'UMPEG', pj: 'Heru Kristanto', status: 'Approved' }
+        ];
+        let currentUser = JSON.parse(sessionStorage.getItem('active_user')) || null;
+        let currentViewDate = new Date();
+        let selectedDateStr = "";
+
+        const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+        function initCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const monthLabel = document.getElementById('calendarMonth');
+            if(!grid) return;
+            grid.innerHTML = '';
+
+            const year = currentViewDate.getFullYear();
+            const month = currentViewDate.getMonth();
+            monthLabel.innerText = `${months[month]} ${year}`;
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Adjust Monday start (Jawa/Indo standard)
+            let startOffset = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+
+            for (let i = 0; i < startOffset; i++) {
+                grid.innerHTML += `<div class="calendar-day empty"></div>`;
+            }
+
+            const today = new Date().toISOString().split('T');
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = today === dateStr;
+                const isSelected = selectedDateStr === dateStr;
+
+                grid.innerHTML += `
+                    <div onclick="selectDate('${dateStr}')" 
+                         class="calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : 'text-gray-600 font-bold'}">
+                        ${day}
+                    </div>`;
+            }
+        }
+
+        function selectDate(date) {
+            selectedDateStr = date;
+            document.getElementById('tanggal').value = date;
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('selectedDateDisplay').innerHTML = `
+                <i class="fas fa-check-circle mr-2"></i> 
+                ${new Date(date).toLocaleDateString('id-ID', options)}`;
+            initCalendar();
+        }
+
+        function prevMonth() { currentViewDate.setMonth(currentViewDate.getMonth() - 1); initCalendar(); }
+        function nextMonth() { currentViewDate.setMonth(currentViewDate.getMonth() + 1); initCalendar(); }
+
+        function handleLogin() {
+            const user = document.getElementById('username').value.toLowerCase();
+            const pass = document.getElementById('password').value;
+            if ((user === 'admin' && pass === 'admin') || (user === 'user' && pass === 'user')) {
+                currentUser = { role: user, name: user.toUpperCase() };
+                sessionStorage.setItem('active_user', JSON.stringify(currentUser));
+                initApp();
+            } else {
+                Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Username atau Password salah!', confirmButtonColor: '#1e3a8a' });
+            }
+        }
+
+        function handleLogout() { sessionStorage.removeItem('active_user'); window.location.reload(); }
+
+        function initApp() {
+            if (!currentUser) return;
+            document.getElementById('loginModal').classList.add('hidden-auth');
+            document.getElementById('appContent').classList.remove('hidden-auth');
+            document.getElementById('roleLabel').innerText = "Mode: " + currentUser.role;
+            if (currentUser.role === 'user') document.getElementById('userFormSection').classList.remove('hidden-auth');
+            initCalendar();
+            renderTable();
+        }
+
+        function renderTable() {
+            const filter = document.getElementById('filterRuangan').value;
+            const tableBody = document.getElementById('bookingTableBody');
+            tableBody.innerHTML = '';
+
+            let filteredData = (filter === 'Semua') ? bookings : bookings.filter(b => b.ruangan === filter);
+
+            filteredData.forEach((data, index) => {
+                let statusClass = 'status-pending';
+                if (data.status === 'Approved') statusClass = 'status-approved';
+                if (data.status === 'Rejected') statusClass = 'status-rejected';
+
+                let actionButtons = `<span class="text-gray-300 italic text-[10px] font-bold uppercase tracking-widest">No Access</span>`;
+                if (currentUser.role === 'admin') {
+                    actionButtons = `
+                        <div class="flex justify-center gap-2">
+                            <button onclick="changeStatus(${data.id}, 'Approved')" class="bg-green-600 text-white w-8 h-8 rounded-lg hover:bg-green-700 shadow-lg shadow-green-100 transition"><i class="fas fa-check text-[10px]"></i></button>
+                            <button onclick="changeStatus(${data.id}, 'Rejected')" class="bg-red-600 text-white w-8 h-8 rounded-lg hover:bg-red-700 shadow-lg shadow-red-100 transition"><i class="fas fa-times text-[10px]"></i></button>
+                            <button onclick="deleteBooking(${data.id})" class="bg-gray-800 text-white w-8 h-8 rounded-lg hover:bg-black transition shadow-lg shadow-gray-200"><i class="fas fa-trash text-[10px]"></i></button>
+                        </div>`;
+                }
+
+                tableBody.innerHTML += `
+                    <tr class="hover:bg-gray-50/80 transition">
+                        <td class="p-6 text-gray-400 font-black">${index + 1}</td>
+                        <td class="p-6">
+                            <div class="font-black text-blue-900">${new Date(data.tanggal).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>
+                            <div class="text-[10px] font-bold text-blue-600 uppercase mt-1 tracking-widest"><i class="far fa-clock mr-1"></i> ${data.jam}</div>
+                        </td>
+                        <td class="p-6 font-black text-gray-700 text-[11px] uppercase">${data.ruangan}</td>
+                        <td class="p-6 font-bold text-gray-600 max-w-xs truncate uppercase text-[11px]">${data.kegiatan}</td>
+                        <td class="p-6">
+                            <div class="font-black text-gray-800 text-[11px]">${data.pj}</div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">${data.bidang}</div>
+                        </td>
+                        <td class="p-6 text-center">
+                            <span class="${statusClass} px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-white shadow-sm">${data.status}</span>
+                        </td>
+                        <td class="p-6 text-center">${actionButtons}</td>
+                    </tr>`;
+            });
+        }
+
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!selectedDateStr) return Swal.fire({ icon: 'warning', title: 'Pilih Tanggal', text: 'Silakan klik salah satu tanggal pada kalender!' });
+
+            const newBooking = {
+                id: Date.now(),
+                tanggal: selectedDateStr,
+                jam: document.getElementById('jamMulai').value + ' - ' + document.getElementById('jamSelesai').value,
+                ruangan: document.getElementById('ruangan').value,
+                kegiatan: document.getElementById('kegiatan').value,
+                bidang: document.getElementById('bidang').value,
+                pj: document.getElementById('pj').value,
+                status: 'Pending'
+            };
+
+            bookings.unshift(newBooking);
+            localStorage.setItem('db_bookings_final', JSON.stringify(bookings));
+            renderTable();
+            
+            this.reset();
+            selectedDateStr = "";
+            document.getElementById('selectedDateDisplay').innerText = "Silakan klik tanggal pada kalender";
+            initCalendar();
+            Swal.fire({ icon: 'success', title: 'Terkirim!', text: 'Permohonan booking Anda sedang menunggu persetujuan Admin.', confirmButtonColor: '#1e3a8a' });
+        });
+
+        function changeStatus(id, newStatus) {
+            const index = bookings.findIndex(b => b.id === id);
+            if (index !== -1) {
+                bookings[index].status = newStatus;
+                localStorage.setItem('db_bookings_final', JSON.stringify(bookings));
+                renderTable();
+            }
+        }
+
+        function deleteBooking(id) {
+            Swal.fire({
+                title: 'Hapus Data?',
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#1e3a8a',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Ya, Hapus!'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    bookings = bookings.filter(b => b.id !== id);
+                    localStorage.setItem('db_bookings_final', JSON.stringify(bookings));
+                    renderTable();
+                }
+            });
+        }
+
+        // Jalankan aplikasi jika sudah login sebelumnya
+        if (currentUser) initApp();
+    </script>
+</body>
+</html>
