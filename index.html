@@ -53,55 +53,54 @@
         .dark .time-unit:hover { background: #334155; color: #fbbf24; }
         .time-unit.active { background: #1e3a8a; color: white; }
 
-        :root {
-            --login-bg-color: rgba(255, 255, 255, 0.9);
-            --login-text-color: #1e3a8a;
+        /* Login Background Perbaikan */
+        #loginModal {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
         #loginModal::before {
             content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: url('https://i.ibb.co.com/dJ6gj8ZP/login-bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            opacity: 0.15;
-            z-index: -1;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+            opacity: 0.2;
         }
-
-        #loginModal > div { position: relative; z-index: 10; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-gray-100">
 
-    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] w-full max-w-md overflow-hidden border border-white/20">
-            <div class="p-8 text-center border-b border-gray-100 bg-white">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-16 mx-auto mb-4">
-                <h2 class="text-xl font-black text-blue-900 uppercase tracking-tighter">E-Booking Ruangan</h2>
-                <p class="text-gray-500 text-[10px] uppercase font-bold tracking-widest mt-1">Dinas Koperasi UKM Provinsi Jawa Tengah</p>
+    <div id="loginModal">
+        <div class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-white/20 relative z-10 mx-4">
+            <div class="p-8 text-center border-b border-white/10 bg-white/5">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-16 mx-auto mb-4 drop-shadow-lg">
+                <h2 class="text-xl font-black text-white uppercase tracking-tighter">E-Booking Ruangan</h2>
+                <p class="text-blue-200 text-[10px] uppercase font-bold tracking-widest mt-1">Dinas Koperasi UKM Provinsi Jawa Tengah</p>
             </div>
 
             <div class="p-8 space-y-5">
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 block mb-1">Username</label>
+                    <label class="text-[10px] font-bold text-blue-200 uppercase ml-2 block mb-1">Username</label>
                     <input type="text" id="username" placeholder="Masukkan username" 
-                        class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition mt-1 text-sm font-semibold text-slate-900">
+                        class="w-full p-4 bg-white/10 border-2 border-white/5 rounded-2xl outline-none focus:border-yellow-500 focus:bg-white/20 transition mt-1 text-sm font-semibold text-white placeholder-blue-300">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 block mb-1">Password</label>
+                    <label class="text-[10px] font-bold text-blue-200 uppercase ml-2 block mb-1">Password</label>
                     <input type="password" id="password" placeholder="••••••••" 
-                        class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition mt-1 text-sm font-semibold text-slate-900">
+                        class="w-full p-4 bg-white/10 border-2 border-white/5 rounded-2xl outline-none focus:border-yellow-500 focus:bg-white/20 transition mt-1 text-sm font-semibold text-white placeholder-blue-300">
                 </div>
                 <button onclick="handleLogin()" 
-                    class="w-full bg-blue-700 text-white font-black py-4 rounded-2xl hover:bg-blue-800 transition shadow-lg shadow-blue-200 uppercase mt-4 tracking-widest text-sm">
-                    Masuk
+                    class="w-full bg-yellow-500 text-blue-900 font-black py-4 rounded-2xl hover:bg-yellow-400 transition shadow-lg uppercase mt-4 tracking-widest text-sm">
+                    Masuk ke Sistem
                 </button>
             </div>
 
-            <div class="p-4 bg-gray-50/50 text-center">
-                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Pemerintah Provinsi Jawa Tengah</p>
+            <div class="p-4 bg-black/20 text-center">
+                <p class="text-[9px] text-blue-300 font-bold uppercase tracking-widest">Pemerintah Provinsi Jawa Tengah</p>
             </div>
         </div>
     </div>
@@ -163,7 +162,7 @@
             </div>
         </section>
 
-        <section id="userFormSection" class="container mx-auto px-6 hidden-auth mb-12">
+        <section id="userFormSection" class="container mx-auto px-6 hidden mb-12">
             <div class="max-w-5xl mx-auto bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-visible border border-gray-100 dark:border-slate-700">
                 <div class="bg-gray-50 dark:bg-slate-800/50 p-6 border-b dark:border-slate-700 flex items-center justify-between">
                     <h3 class="font-black text-blue-900 dark:text-blue-400 flex items-center text-sm uppercase tracking-widest">
@@ -305,47 +304,40 @@
     </div>
 
     <script>
-        // THEME ENGINE
-        function initTheme() {
-            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-                document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.getElementById('themeIcon').classList.replace('fa-sun', 'fa-moon');
-            }
-        }
-
-        function toggleDarkMode() {
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                document.getElementById('themeIcon').classList.replace('fa-sun', 'fa-moon');
-            } else {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
-            }
-        }
-
+        // CONFIG & INIT
         const firebaseConfig = { databaseURL: "https://e-booking-eed92-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        let allBookings = [];
         let currentUser = JSON.parse(sessionStorage.getItem('active_user')) || null;
         let currentViewDate = new Date();
         let selectedDateStr = "";
         const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         let tempTime = { jamMulai: {H:'08', M:'00'}, jamSelesai: {H:'10', M:'00'} };
 
-        function updateClock() {
-            const clock = document.getElementById('realtimeClock');
-            if(clock) clock.innerText = new Date().toLocaleTimeString('id-ID', { hour12: false });
-        }
-        setInterval(updateClock, 1000);
+        window.onload = () => {
+            initTheme();
+            if(currentUser) initApp();
+        };
 
+        // THEME ENGINE
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').classList.replace(isDark ? 'fa-moon' : 'fa-sun', isDark ? 'fa-sun' : 'fa-moon');
+        }
+
+        // AUTH SYSTEM
         function handleLogin() {
-            const u = document.getElementById('username').value.toLowerCase();
+            const u = document.getElementById('username').value.trim().toLowerCase();
             const p = document.getElementById('password').value;
             if ((u === 'admin' && p === 'admin') || (u === 'user' && p === 'user')) {
                 currentUser = { role: u };
@@ -356,24 +348,30 @@
             }
         }
 
-        function handleLogout() { sessionStorage.clear(); window.location.reload(); }
+        function handleLogout() { 
+            sessionStorage.clear(); 
+            window.location.reload(); 
+        }
 
         function initApp() {
-            if(!currentUser) return;
             document.getElementById('loginModal').style.display = 'none';
             document.getElementById('appContent').classList.remove('hidden-auth');
             document.getElementById('roleLabel').innerText = "MODE: " + currentUser.role;
             
             if (currentUser.role === 'user') {
-                document.getElementById('userFormSection').classList.remove('hidden-auth');
+                document.getElementById('userFormSection').classList.remove('hidden');
                 generateTimeOptions('hoursMulai', 'minsMulai', 'jamMulai');
                 generateTimeOptions('hoursSelesai', 'minsSelesai', 'jamSelesai');
             }
             
             initCalendar();
             tarikDataFirebase();
+            setInterval(() => {
+                document.getElementById('realtimeClock').innerText = new Date().toLocaleTimeString('id-ID', { hour12: false });
+            }, 1000);
         }
 
+        // CALENDAR & PICKERS
         function generateTimeOptions(targetHours, targetMins, inputId) {
             const hDiv = document.getElementById(targetHours);
             const mDiv = document.getElementById(targetMins);
@@ -408,7 +406,6 @@
         function initCalendar() {
             const grid = document.getElementById('calendarGrid');
             const monthLabel = document.getElementById('calendarMonth');
-            if(!grid || !monthLabel) return;
             grid.innerHTML = '';
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
@@ -436,6 +433,7 @@
         function prevMonth() { currentViewDate.setMonth(currentViewDate.getMonth() - 1); initCalendar(); }
         function nextMonth() { currentViewDate.setMonth(currentViewDate.getMonth() + 1); initCalendar(); }
 
+        // FIREBASE OPS
         function simpanKeFirebase(e) {
             e.preventDefault();
             const tgl = document.getElementById('tanggal').value;
@@ -464,21 +462,24 @@
             db.ref('bookings').on('value', (snap) => {
                 const loader = document.getElementById('loader');
                 if(loader) loader.style.display = 'none';
-                const list = [];
-                snap.forEach(child => { list.push(child.val()); });
-                renderTable(list.reverse());
+                
+                allBookings = [];
+                snap.forEach(child => { allBookings.push(child.val()); });
+                allBookings.reverse();
+                renderTable();
             });
         }
 
-        function renderTable(dataRaw) {
+        function renderTable() {
             const body = document.getElementById('bookingTableBody');
             if(!body) return;
             body.innerHTML = '';
+            
             const filter = document.getElementById('filterRuangan').value;
-            const data = (filter === 'Semua') ? (dataRaw || []) : (dataRaw || []).filter(b => b.ruangan === filter);
+            const data = (filter === 'Semua') ? allBookings : allBookings.filter(b => b.ruangan === filter);
 
             if(data.length === 0) {
-                body.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-gray-400 italic">Belum ada data jadwal.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-gray-400 italic font-bold">Belum ada data jadwal.</td></tr>`;
                 return;
             }
 
@@ -486,27 +487,48 @@
                 const badgeCls = b.status === 'Approved' ? 'status-approved' : (b.status === 'Rejected' ? 'status-rejected' : 'status-pending');
                 const aksi = (currentUser.role === 'admin') ? `
                     <div class="flex gap-1 justify-center">
-                        <button onclick="updateStatus('${b.id}', 'Approved')" class="bg-green-600 text-white w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-check"></i></button>
-                        <button onclick="updateStatus('${b.id}', 'Rejected')" class="bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-times"></i></button>
-                        <button onclick="hapusData('${b.id}')" class="bg-gray-200 dark:bg-slate-700 text-gray-500 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-trash"></i></button>
-                    </div>` : '<i class="fas fa-lock text-gray-200"></i>';
+                        <button onclick="updateStatus('${b.id}', 'Approved')" class="bg-green-600 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-green-700 transition"><i class="fas fa-check"></i></button>
+                        <button onclick="updateStatus('${b.id}', 'Rejected')" class="bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-700 transition"><i class="fas fa-times"></i></button>
+                        <button onclick="hapusData('${b.id}')" class="bg-slate-800 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black transition"><i class="fas fa-trash"></i></button>
+                    </div>` : `<span class="text-[10px] text-gray-400 font-black italic uppercase">View Only</span>`;
 
                 body.innerHTML += `
-                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition border-b dark:border-slate-700">
-                        <td class="p-6 font-bold text-gray-800 dark:text-white">${b.tanggal}<br><span class="text-blue-500 text-[10px]">${b.jam}</span></td>
-                        <td class="p-6 font-black uppercase text-blue-900 dark:text-blue-400">${b.ruangan}</td>
-                        <td class="p-6 max-w-xs truncate font-semibold">${b.kegiatan}</td>
-                        <td class="p-6 font-bold uppercase text-[10px]">${b.pj} / ${b.bidang}</td>
-                        <td class="p-6 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${badgeCls}">${b.status}</span></td>
-                        <td class="p-6 text-center">${aksi}</td>
-                    </tr>`;
+                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700 transition border-b dark:border-slate-700">
+                        <td class="p-6">
+                            <div class="font-black text-blue-900 dark:text-white leading-none mb-1">${b.jam}</div>
+                            <div class="text-[10px] text-gray-400 font-bold uppercase">${b.tanggal}</div>
+                        </td>
+                        <td class="p-6 font-black text-blue-600 dark:text-blue-400 text-[10px] tracking-widest">${b.ruangan}</td>
+                        <td class="p-6 font-bold text-slate-800 dark:text-gray-200 capitalize leading-relaxed">${b.kegiatan}</td>
+                        <td class="p-6">
+                            <div class="font-bold text-slate-700 dark:text-gray-300 leading-none mb-1">${b.pj}</div>
+                            <div class="text-[9px] text-yellow-600 font-black uppercase italic">${b.bidang}</div>
+                        </td>
+                        <td class="p-6 text-center">
+                            <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${badgeCls}">${b.status}</span>
+                        </td>
+                        <td class="p-6">${aksi}</td>
+                    </tr>
+                `;
             });
         }
 
-        function updateStatus(id, stat) { db.ref('bookings/'+id).update({status: stat}); }
-        function hapusData(id) { Swal.fire({title:'Hapus?', icon:'warning', showCancelButton:true}).then(res => { if(res.isConfirmed) db.ref('bookings/'+id).remove(); }); }
+        function updateStatus(id, stat) {
+            db.ref('bookings/' + id).update({ status: stat });
+        }
 
-        window.onload = () => { initTheme(); initApp(); };
+        function hapusData(id) {
+            Swal.fire({
+                title: 'Hapus Reservasi?',
+                text: "Data akan dihapus secara permanen dari server.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Ya, Hapus'
+            }).then((res) => {
+                if(res.isConfirmed) db.ref('bookings/' + id).remove();
+            });
+        }
     </script>
 </body>
 </html>
