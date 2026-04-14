@@ -52,27 +52,56 @@
         .time-unit:hover { background: #f1f5f9; color: #1e3a8a; }
         .dark .time-unit:hover { background: #334155; color: #fbbf24; }
         .time-unit.active { background: #1e3a8a; color: white; }
+
+        :root {
+            --login-bg-color: rgba(255, 255, 255, 0.9);
+            --login-text-color: #1e3a8a;
+        }
+
+        #loginModal::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: url('https://i.ibb.co.com/dJ6gj8ZP/login-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: -1;
+        }
+
+        #loginModal > div { position: relative; z-index: 10; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-gray-100">
 
-    <div id="loginModal" class="fixed inset-0 bg-jateng z- flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div class="p-8 text-center border-b dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
+    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] w-full max-w-md overflow-hidden border border-white/20">
+            <div class="p-8 text-center border-b border-gray-100 bg-white">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-16 mx-auto mb-4">
-                <h2 class="text-xl font-black text-blue-900 dark:text-blue-400 uppercase tracking-tighter">E-Booking Ruangan</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold tracking-widest mt-1">Dinas Koperasi & UKM Jawa Tengah</p>
+                <h2 class="text-xl font-black text-blue-900 uppercase tracking-tighter">E-Booking Ruangan</h2>
+                <p class="text-gray-500 text-[10px] uppercase font-bold tracking-widest mt-1">Dinas Koperasi UKM Provinsi Jawa Tengah</p>
             </div>
-            <div class="p-8 space-y-4">
+
+            <div class="p-8 space-y-5">
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Username</label>
-                    <input type="text" id="username" placeholder="admin / user" class="w-full p-4 border-2 dark:border-slate-700 rounded-2xl outline-none focus:border-blue-600 transition bg-gray-50 dark:bg-slate-900 mt-1">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 block mb-1">Username</label>
+                    <input type="text" id="username" placeholder="Masukkan username" 
+                        class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition mt-1 text-sm font-semibold text-slate-900">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Password</label>
-                    <input type="password" id="password" placeholder="••••••••" class="w-full p-4 border-2 dark:border-slate-700 rounded-2xl outline-none focus:border-blue-600 transition bg-gray-50 dark:bg-slate-900 mt-1">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 block mb-1">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" 
+                        class="w-full p-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition mt-1 text-sm font-semibold text-slate-900">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-blue-700 text-white font-black py-4 rounded-2xl hover:bg-blue-800 transition shadow-xl uppercase mt-2 tracking-widest text-sm">Masuk Sistem</button>
+                <button onclick="handleLogin()" 
+                    class="w-full bg-blue-700 text-white font-black py-4 rounded-2xl hover:bg-blue-800 transition shadow-lg shadow-blue-200 uppercase mt-4 tracking-widest text-sm">
+                    Masuk
+                </button>
+            </div>
+
+            <div class="p-4 bg-gray-50/50 text-center">
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Pemerintah Provinsi Jawa Tengah</p>
             </div>
         </div>
     </div>
@@ -91,7 +120,6 @@
                     <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-yellow-400 flex items-center justify-center hover:ring-2 ring-yellow-500 transition-all">
                         <i id="themeIcon" class="fas fa-moon"></i>
                     </button>
-
                     <div class="hidden md:flex flex-col items-end mr-2">
                         <span id="realtimeClock" class="text-sm font-black text-blue-900 dark:text-white leading-none">00:00:00</span>
                         <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Waktu Lokal</span>
@@ -143,7 +171,7 @@
                     </h3>
                 </div>
                 
-                <form id="bookingForm" class="grid grid-cols-1 lg:grid-cols-3">
+                <form id="bookingForm" onsubmit="simpanKeFirebase(event)" class="grid grid-cols-1 lg:grid-cols-3">
                     <div class="p-8 lg:border-r border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800">
                         <label class="text-[10px] font-black text-gray-400 uppercase mb-4 block tracking-widest">1. Pilih Tanggal</label>
                         <div class="bg-gray-50 dark:bg-slate-900 p-4 rounded-3xl border border-gray-200 dark:border-slate-700">
@@ -164,22 +192,23 @@
                         <label class="text-[10px] font-black text-gray-400 uppercase block tracking-widest">2. Lengkapi Detail Kegiatan</label>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div class="md:col-span-2">
-                                <input type="text" id="kegiatan" placeholder="Judul Agenda / Nama Kegiatan" required class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl outline-none focus:border-blue-500 text-sm font-semibold dark:text-white">
+                                <input type="text" id="kegiatan" placeholder="Judul Agenda / Nama Kegiatan" required class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl outline-none focus:border-blue-500 text-sm font-semibold dark:text-white text-slate-900">
                             </div>
                             <div>
-                                <select id="ruangan" class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl font-bold text-sm outline-none focus:border-blue-500 dark:text-white">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Pilih Ruangan</label>
+                                <select id="ruangan" class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl font-bold text-sm outline-none focus:border-blue-500 dark:text-white text-slate-900">
                                     <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
                                 </select>
                             </div>
                             <div>
-                                <select id="bidang" class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl font-bold text-sm outline-none focus:border-blue-500 dark:text-white">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Pilih Divisi / Bidang</label>
+                                <select id="bidang" class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl font-bold text-sm outline-none focus:border-blue-500 dark:text-white text-slate-900">
                                     <option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option><option>PEMASARAN</option>
                                 </select>
                             </div>
-                            
                             <div class="relative">
                                 <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Mulai</label>
-                                <input type="text" id="jamMulai" placeholder="08:00" readonly onclick="toggleTimePicker('pickerMulai')" class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl text-sm font-bold cursor-pointer focus:border-blue-500 outline-none dark:text-white">
+                                <input type="text" id="jamMulai" placeholder="08:00" readonly onclick="toggleTimePicker('pickerMulai')" class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl text-sm font-bold cursor-pointer focus:border-blue-500 outline-none dark:text-white text-slate-900">
                                 <div id="pickerMulai" class="time-picker-overlay">
                                     <div class="flex justify-around">
                                         <div class="time-column" id="hoursMulai"></div>
@@ -188,10 +217,9 @@
                                     <button type="button" onclick="closeTimePicker('pickerMulai')" class="w-full mt-4 bg-blue-900 text-white py-2 rounded-xl text-[10px] font-bold uppercase">Set Time</button>
                                 </div>
                             </div>
-
                             <div class="relative">
                                 <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Selesai</label>
-                                <input type="text" id="jamSelesai" placeholder="10:00" readonly onclick="toggleTimePicker('pickerSelesai')" class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl text-sm font-bold cursor-pointer focus:border-blue-500 outline-none dark:text-white">
+                                <input type="text" id="jamSelesai" placeholder="10:00" readonly onclick="toggleTimePicker('pickerSelesai')" class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl text-sm font-bold cursor-pointer focus:border-blue-500 outline-none dark:text-white text-slate-900">
                                 <div id="pickerSelesai" class="time-picker-overlay">
                                     <div class="flex justify-around">
                                         <div class="time-column" id="hoursSelesai"></div>
@@ -200,9 +228,8 @@
                                     <button type="button" onclick="closeTimePicker('pickerSelesai')" class="w-full mt-4 bg-blue-900 text-white py-2 rounded-xl text-[10px] font-bold uppercase">Set Time</button>
                                 </div>
                             </div>
-
                             <div class="md:col-span-2">
-                                <input type="text" id="pj" placeholder="Penanggung Jawab (PJ)" required class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl text-sm font-bold outline-none focus:border-blue-500 dark:text-white">
+                                <input type="text" id="pj" placeholder="Penanggung Jawab (PJ)" required class="w-full p-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent dark:border-slate-700 rounded-2xl text-sm font-bold outline-none focus:border-blue-500 dark:text-white text-slate-900">
                             </div>
                         </div>
                         <button type="submit" class="w-full bg-blue-700 text-white font-black py-5 rounded-2xl hover:bg-blue-800 transition uppercase shadow-xl tracking-widest text-sm">
@@ -216,7 +243,7 @@
         <section class="container mx-auto px-6 py-12">
             <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-slate-700">
                 <div class="p-8 border-b dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800">
-                    <h3 class="font-black text-blue-900 dark:text-blue-400 uppercase italic text-lg tracking-tighter">Jadwal Penggunaan Ruangan</h3>
+                    <h3 class="font-black text-blue-900 dark:text-blue-400 uppercase italic">Jadwal Penggunaan Ruangan</h3>
                     <select id="filterRuangan" onchange="renderTable()" class="w-full md:w-auto text-[11px] font-black p-2 bg-gray-50 dark:bg-slate-900 dark:text-white rounded-xl outline-none border dark:border-slate-700 uppercase tracking-widest">
                         <option value="Semua">Semua Ruangan</option>
                         <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
@@ -234,13 +261,47 @@
                                 <th class="p-6 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="bookingTableBody" class="text-xs divide-y divide-gray-100 dark:divide-slate-700">
-                        </tbody>
+                        <tbody id="bookingTableBody" class="text-xs divide-y divide-gray-100 dark:divide-slate-700"></tbody>
                     </table>
                 </div>
                 <div id="loader" class="p-10 text-center font-bold text-gray-300 animate-pulse uppercase tracking-widest text-xs">Menyinkronkan data database...</div>
             </div>
         </section>
+
+        <footer class="bg-blue-900 text-white pt-16 pb-8 px-6 mt-12 border-t-8 border-yellow-500">
+            <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-12">
+                        <div>
+                            <h5 class="font-black text-sm leading-none">DINAS KOPERASI UKM</h5>
+                            <p class="text-[10px] font-bold text-blue-300 uppercase italic">Provinsi Jawa Tengah</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-blue-100 leading-relaxed opacity-70">
+                        Sistem Monitoring dan Reservasi Ruang Rapat untuk efisiensi koordinasi internal kedinasan.
+                    </p>
+                </div>
+                <div class="space-y-4">
+                    <h5 class="text-xs font-black uppercase tracking-widest text-yellow-400">Hubungi Kami</h5>
+                    <ul class="space-y-3 text-xs text-blue-100">
+                        <li class="flex items-start italic"><i class="fas fa-map-marker-alt mt-1 mr-3 text-yellow-500"></i> Jl. Sisingamangaraja No.3A, Semarang</li>
+                        <li class="flex items-center"><i class="fas fa-phone-alt mr-3 text-yellow-500"></i> (024) 8311261</li>
+                        <li class="flex items-center"><i class="fas fa-envelope mr-3 text-yellow-500"></i> diskopukm@jatengprov.go.id</li>
+                    </ul>
+                </div>
+                <div class="space-y-4 text-right md:text-left">
+                    <h5 class="text-xs font-black uppercase tracking-widest text-yellow-400">Tautan Terkait</h5>
+                    <div class="flex flex-col space-y-2 text-xs">
+                        <a href="https://jatengprov.go.id" class="hover:text-yellow-400">Portal Provinsi Jawa Tengah</a>
+                        <a href="#" class="hover:text-yellow-400">E-Office Jateng</a>
+                    </div>
+                </div>
+            </div>
+            <div class="container mx-auto mt-12 pt-8 border-t border-blue-800 text-center">
+                <p class="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em]">&copy; 2026 DINAS KOPERASI UKM JATENG - DEVELOPMENT TEAM</p>
+            </div>
+        </footer>
     </div>
 
     <script>
@@ -267,7 +328,6 @@
             }
         }
 
-        // FIREBASE CONFIGURATION
         const firebaseConfig = { databaseURL: "https://e-booking-eed92-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -299,6 +359,7 @@
         function handleLogout() { sessionStorage.clear(); window.location.reload(); }
 
         function initApp() {
+            if(!currentUser) return;
             document.getElementById('loginModal').style.display = 'none';
             document.getElementById('appContent').classList.remove('hidden-auth');
             document.getElementById('roleLabel').innerText = "MODE: " + currentUser.role;
@@ -347,6 +408,7 @@
         function initCalendar() {
             const grid = document.getElementById('calendarGrid');
             const monthLabel = document.getElementById('calendarMonth');
+            if(!grid || !monthLabel) return;
             grid.innerHTML = '';
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
@@ -390,7 +452,7 @@
                 pj: document.getElementById('pj').value,
                 status: 'Pending'
             }).then(() => {
-                Swal.fire('Berhasil', 'Permohonan booking telah dikirim ke Admin.', 'success');
+                Swal.fire('Berhasil', 'Permohonan booking telah dikirim.', 'success');
                 document.getElementById('bookingForm').reset();
                 selectedDateStr = "";
                 initCalendar();
@@ -400,7 +462,8 @@
 
         function tarikDataFirebase() {
             db.ref('bookings').on('value', (snap) => {
-                document.getElementById('loader').style.display = 'none';
+                const loader = document.getElementById('loader');
+                if(loader) loader.style.display = 'none';
                 const list = [];
                 snap.forEach(child => { list.push(child.val()); });
                 renderTable(list.reverse());
@@ -412,9 +475,9 @@
             if(!body) return;
             body.innerHTML = '';
             const filter = document.getElementById('filterRuangan').value;
-            const data = (filter === 'Semua') ? dataRaw : (dataRaw || []).filter(b => b.ruangan === filter);
+            const data = (filter === 'Semua') ? (dataRaw || []) : (dataRaw || []).filter(b => b.ruangan === filter);
 
-            if(!data || data.length === 0) {
+            if(data.length === 0) {
                 body.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-gray-400 italic">Belum ada data jadwal.</td></tr>`;
                 return;
             }
@@ -429,35 +492,21 @@
                     </div>` : '<i class="fas fa-lock text-gray-200"></i>';
 
                 body.innerHTML += `
-                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition">
-                        <td class="p-6">
-                            <div class="font-black text-gray-800 dark:text-gray-100">${b.tanggal}</div>
-                            <div class="text-blue-600 dark:text-blue-400 font-bold text-[10px] uppercase mt-1 tracking-tighter">${b.jam}</div>
-                        </td>
-                        <td class="p-6 font-black text-blue-900 dark:text-blue-400 uppercase text-[10px]">${b.ruangan}</td>
-                        <td class="p-6">
-                            <div class="font-bold text-gray-800 dark:text-gray-100 uppercase text-[11px] leading-tight">${b.kegiatan}</div>
-                        </td>
-                        <td class="p-6">
-                            <div class="font-bold text-gray-700 dark:text-gray-300">${b.pj}</div>
-                            <div class="text-[9px] text-gray-400 font-bold uppercase">${b.bidang}</div>
-                        </td>
-                        <td class="p-6 text-center">
-                            <span class="${badgeCls} px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest shadow-sm">${b.status}</span>
-                        </td>
+                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition border-b dark:border-slate-700">
+                        <td class="p-6 font-bold text-gray-800 dark:text-white">${b.tanggal}<br><span class="text-blue-500 text-[10px]">${b.jam}</span></td>
+                        <td class="p-6 font-black uppercase text-blue-900 dark:text-blue-400">${b.ruangan}</td>
+                        <td class="p-6 max-w-xs truncate font-semibold">${b.kegiatan}</td>
+                        <td class="p-6 font-bold uppercase text-[10px]">${b.pj} / ${b.bidang}</td>
+                        <td class="p-6 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${badgeCls}">${b.status}</span></td>
                         <td class="p-6 text-center">${aksi}</td>
                     </tr>`;
             });
         }
 
-        function updateStatus(id, s) { db.ref('bookings/' + id).update({ status: s }); }
-        function hapusData(id) { if(confirm('Hapus reservasi ini?')) db.ref('bookings/' + id).remove(); }
+        function updateStatus(id, stat) { db.ref('bookings/'+id).update({status: stat}); }
+        function hapusData(id) { Swal.fire({title:'Hapus?', icon:'warning', showCancelButton:true}).then(res => { if(res.isConfirmed) db.ref('bookings/'+id).remove(); }); }
 
-        document.getElementById('bookingForm').addEventListener('submit', simpanKeFirebase);
-
-        // INITIALIZE THEME & APP
-        initTheme();
-        if (currentUser) initApp();
+        window.onload = () => { initTheme(); initApp(); };
     </script>
 </body>
 </html>
