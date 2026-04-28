@@ -10,7 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
     <script>
@@ -22,7 +21,6 @@
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; }
         .bg-jateng { background-color: #1e3a8a; }
         
-        /* Custom FullCalendar agar menyatu dengan UI */
         .fc { background: white; border-radius: 2rem; padding: 20px; border: none !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         .dark .fc { background: #1e293b; color: white; border: 1px solid #334155 !important; }
         .fc-event { cursor: pointer; border: none; padding: 4px 8px; font-size: 10px; font-weight: 800; border-radius: 6px; margin: 1px 0; text-transform: uppercase; }
@@ -30,11 +28,9 @@
         .dark .fc-toolbar-title { color: #facc15; }
         .fc-button-primary { background-color: #1e3a8a !important; border: none !important; font-size: 11px !important; font-weight: 800 !important; text-transform: uppercase; border-radius: 10px !important; }
         
-        /* Form Calendar Mini */
         .calendar-day { transition: all 0.2s; cursor: pointer; height: 35px; width: 35px; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 10px; }
         .calendar-day.selected { background-color: #1e3a8a !important; color: white !important; }
         
-        /* Time Picker */
         .time-picker-overlay { display: none; position: absolute; bottom: 100%; left: 0; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; z-index: 999; padding: 1rem; }
         .dark .time-picker-overlay { background: #1e293b; border-color: #334155; }
         .time-column { height: 120px; overflow-y: auto; scrollbar-width: none; }
@@ -45,7 +41,7 @@
 <body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-gray-100">
 
     <div id="appContent">
-        <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z- border-b-4 border-yellow-500">
+        <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-[100] border-b-4 border-yellow-500">
             <div class="container mx-auto px-6 py-3 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-10">
@@ -123,7 +119,7 @@
         <section class="container mx-auto px-6 py-12">
             <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
                 <div>
-                    <h3 class="font-900 text-2xl text-blue-900 dark:text-white uppercase italic tracking-tighter">Jadwal Kalender</h3>
+                    <h3 class="font-[900] text-2xl text-blue-900 dark:text-white uppercase italic tracking-tighter">Jadwal Kalender</h3>
                     <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Visualisasi Penggunaan Ruangan</p>
                 </div>
                 <select id="filterRuangan" onchange="renderCalendar()" class="w-full md:w-auto text-[10px] font-black px-4 py-3 bg-white dark:bg-slate-800 shadow-sm rounded-xl border-b-4 border-yellow-500 uppercase">
@@ -145,7 +141,7 @@
     </div>
 
     <script>
-        // --- Firebase & Initial Config ---
+        // --- Firebase Config ---
         const firebaseConfig = { databaseURL: "https://e-booking-eed92-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -179,7 +175,72 @@
             document.getElementById('roleLabel').innerText = "AKSES: " + currentRole.toUpperCase();
         }
 
-        // --- FullCalendar Integration ---
+        // --- Firebase Handlers ---
+        function tarikDataFirebase() {
+            db.ref('bookings').on('value', (snap) => {
+                allBookings = [];
+                snap.forEach(child => { allBookings.push(child.val()); });
+                renderCalendar();
+            });
+        }
+
+        function simpanKeFirebase(e) {
+            e.preventDefault();
+            
+            const tgl = document.getElementById('tanggal').value;
+            const jamMulai = document.getElementById('jamMulai').value;
+            const jamSelesai = document.getElementById('jamSelesai').value;
+            const ruanganPilihan = document.getElementById('ruangan').value;
+
+            // Validasi Dasar
+            if (!tgl) return Swal.fire('Error', 'Pilih tanggal pada kalender!', 'warning');
+            if (!jamMulai || !jamSelesai) return Swal.fire('Error', 'Tentukan jam mulai dan selesai!', 'warning');
+            if (jamMulai >= jamSelesai) return Swal.fire('Error', 'Jam selesai harus lebih besar dari jam mulai!', 'warning');
+
+            // --- VALIDASI BENTROK (Overlap Detection) ---
+            const isBentrok = allBookings.some(b => {
+                // Abaikan jika status rejected
+                if (b.status === 'Rejected') return false;
+                
+                // Cek jika di tanggal dan ruangan yang sama
+                if (b.tanggal === tgl && b.ruangan === ruanganPilihan) {
+                    const [bMulai, bSelesai] = b.jam.split(' - ');
+                    // Rumus Overlap: (StartA < EndB) AND (EndA > StartB)
+                    return (jamMulai < bSelesai && jamSelesai > bMulai);
+                }
+                return false;
+            });
+
+            if (isBentrok) {
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'Jadwal Bentrok!',
+                    text: `Maaf, ruang ${ruanganPilihan} sudah dipesan pada jam tersebut. Silakan cek kalender kembali.`,
+                    confirmButtonColor: '#1e3a8a'
+                });
+            }
+
+            // Jika aman, simpan
+            const id = Date.now().toString();
+            db.ref('bookings/' + id).set({
+                id: id,
+                tanggal: tgl,
+                jam: `${jamMulai} - ${jamSelesai}`,
+                ruangan: ruanganPilihan,
+                kegiatan: document.getElementById('kegiatan').value,
+                bidang: document.getElementById('bidang').value,
+                pj: document.getElementById('pj').value,
+                status: 'Pending'
+            }).then(() => {
+                Swal.fire('Berhasil!', 'Reservasi terkirim! Menunggu konfirmasi Admin.', 'success');
+                document.getElementById('bookingForm').reset();
+                selectedDateStr = ""; 
+                initFormCalendar();
+                document.getElementById('selectedDateDisplay').innerText = "Belum pilih tanggal";
+            });
+        }
+
+        // --- Render Calendar ---
         function renderCalendar() {
             const calendarEl = document.getElementById('calendarMain');
             const filter = document.getElementById('filterRuangan').value;
@@ -231,7 +292,7 @@
             });
         }
 
-        // --- Logic Mini Calendar di Form ---
+        // --- Mini Calendar Logic ---
         function initFormCalendar() {
             const grid = document.getElementById('calendarGrid');
             const monthLabel = document.getElementById('calendarMonth');
@@ -290,37 +351,7 @@
         }
         function closeTimePicker(id) { document.getElementById(id).style.display = 'none'; }
 
-        // --- Firebase Handlers ---
-        function tarikDataFirebase() {
-            db.ref('bookings').on('value', (snap) => {
-                allBookings = [];
-                snap.forEach(child => { allBookings.push(child.val()); });
-                renderCalendar();
-            });
-        }
-
-        function simpanKeFirebase(e) {
-            e.preventDefault();
-            const tgl = document.getElementById('tanggal').value;
-            if(!tgl) return Swal.fire('Error', 'Pilih tanggal pada kalender!', 'warning');
-            
-            const id = Date.now().toString();
-            db.ref('bookings/' + id).set({
-                id: id,
-                tanggal: tgl,
-                jam: document.getElementById('jamMulai').value + ' - ' + document.getElementById('jamSelesai').value,
-                ruangan: document.getElementById('ruangan').value,
-                kegiatan: document.getElementById('kegiatan').value,
-                bidang: document.getElementById('bidang').value,
-                pj: document.getElementById('pj').value,
-                status: 'Pending'
-            }).then(() => {
-                Swal.fire('Berhasil!', 'Reservasi terkirim!', 'success');
-                document.getElementById('bookingForm').reset();
-                selectedDateStr = ""; initFormCalendar();
-            });
-        }
-
+        // --- Admin Functions ---
         function updateStatus(id, newStatus) {
             db.ref('bookings/' + id).update({ status: newStatus }).then(() => Swal.close());
         }
@@ -336,6 +367,7 @@
             }).then((res) => { if(res.isConfirmed) { db.ref('bookings/' + id).remove(); Swal.close(); } });
         }
 
+        // --- Theme & Dark Mode ---
         function toggleDarkMode() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
