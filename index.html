@@ -21,6 +21,7 @@
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; }
         .bg-jateng { background-color: #1e3a8a; }
         
+        /* FullCalendar Custom Style */
         .fc { background: white; border-radius: 2rem; padding: 20px; border: none !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         .dark .fc { background: #1e293b; color: white; border: 1px solid #334155 !important; }
         .fc-event { cursor: pointer; border: none; padding: 4px 8px; font-size: 10px; font-weight: 800; border-radius: 6px; margin: 1px 0; text-transform: uppercase; }
@@ -28,14 +29,19 @@
         .dark .fc-toolbar-title { color: #facc15; }
         .fc-button-primary { background-color: #1e3a8a !important; border: none !important; font-size: 11px !important; font-weight: 800 !important; text-transform: uppercase; border-radius: 10px !important; }
         
+        /* Mini Calendar Form */
         .calendar-day { transition: all 0.2s; cursor: pointer; height: 35px; width: 35px; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 10px; }
         .calendar-day.selected { background-color: #1e3a8a !important; color: white !important; }
         
+        /* Time Picker */
         .time-picker-overlay { display: none; position: absolute; bottom: 100%; left: 0; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; z-index: 999; padding: 1rem; }
         .dark .time-picker-overlay { background: #1e293b; border-color: #334155; }
         .time-column { height: 120px; overflow-y: auto; scrollbar-width: none; }
         .time-unit { padding: 0.5rem; text-align: center; cursor: pointer; border-radius: 0.5rem; font-weight: bold; font-size: 14px; }
         .time-unit.active { background: #1e3a8a; color: white; }
+
+        /* Custom Scrollbar for Long List */
+        select option { padding: 10px; font-weight: 600; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-gray-100">
@@ -87,13 +93,26 @@
                     <div class="lg:col-span-2 p-6 space-y-4">
                         <label class="text-[10px] font-black text-gray-400 uppercase block">2. Detail Kegiatan</label>
                         <input type="text" id="kegiatan" placeholder="Nama Kegiatan" required class="w-full p-3 bg-gray-50 dark:bg-slate-900 rounded-xl outline-none focus:ring-2 ring-blue-500 text-sm font-semibold">
-                        <div class="grid grid-cols-2 gap-4">
-                            <select id="ruangan" class="p-3 bg-gray-50 dark:bg-slate-900 rounded-xl font-bold text-xs uppercase">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <select id="ruangan" class="p-3 bg-gray-50 dark:bg-slate-900 rounded-xl font-bold text-xs uppercase cursor-pointer">
+                                <option disabled selected>-- PILIH RUANGAN --</option>
                                 <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
                             </select>
-                            <select id="bidang" class="p-3 bg-gray-50 dark:bg-slate-900 rounded-xl font-bold text-xs uppercase">
-                                <option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option><option>PEMASARAN</option>
+                            
+                            <select id="bidang" class="p-3 bg-gray-50 dark:bg-slate-900 rounded-xl font-bold text-[10px] uppercase cursor-pointer overflow-hidden text-ellipsis">
+                                <option disabled selected>-- PILIH BIDANG --</option>
+                                <option>UMPEG</option>
+                                <option>PROGRAM</option>
+                                <option>KEUANGAN</option>
+                                <option>BINA USAHA KOPERASI</option>
+                                <option>PENGEMBANGAN DAN DAYA SAING USAHA KECIL MENENGAH</option>
+                                <option>KELEMBAGAAN DAN PENGAWASAN KOPERASI</option>
+                                <option>PEMBERDAYAAN DAN PEMBIAYAAN USAHA KECIL DAN MENENGAH</option>
+                                <option>BALATKOP UKMK</option>
+                                <option>DHARMA WANITA</option>
                             </select>
+
                             <div class="relative">
                                 <input type="text" id="jamMulai" placeholder="Mulai" readonly onclick="toggleTimePicker('pickerMulai')" class="w-full p-3 bg-gray-50 dark:bg-slate-900 rounded-xl text-xs font-bold text-center cursor-pointer">
                                 <div id="pickerMulai" class="time-picker-overlay">
@@ -101,6 +120,7 @@
                                     <button type="button" onclick="closeTimePicker('pickerMulai')" class="w-full mt-3 bg-blue-900 text-white py-2 rounded-xl text-[10px] font-bold uppercase">Set Jam</button>
                                 </div>
                             </div>
+
                             <div class="relative">
                                 <input type="text" id="jamSelesai" placeholder="Selesai" readonly onclick="toggleTimePicker('pickerSelesai')" class="w-full p-3 bg-gray-50 dark:bg-slate-900 rounded-xl text-xs font-bold text-center cursor-pointer">
                                 <div id="pickerSelesai" class="time-picker-overlay">
@@ -109,6 +129,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <input type="text" id="pj" placeholder="PIC (Penanggung Jawab)" required class="w-full p-3 bg-gray-50 dark:bg-slate-900 rounded-xl text-sm font-bold uppercase">
                         <button type="submit" class="w-full bg-blue-700 text-white font-black py-4 rounded-xl hover:bg-blue-800 uppercase text-xs tracking-widest shadow-lg transition active:scale-95">Ajukan Reservasi</button>
                     </div>
@@ -122,7 +143,7 @@
                     <h3 class="font-[900] text-2xl text-blue-900 dark:text-white uppercase italic tracking-tighter">Jadwal Kalender</h3>
                     <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Visualisasi Penggunaan Ruangan</p>
                 </div>
-                <select id="filterRuangan" onchange="renderCalendar()" class="w-full md:w-auto text-[10px] font-black px-4 py-3 bg-white dark:bg-slate-800 shadow-sm rounded-xl border-b-4 border-yellow-500 uppercase">
+                <select id="filterRuangan" onchange="renderCalendar()" class="w-full md:w-auto text-[10px] font-black px-4 py-3 bg-white dark:bg-slate-800 shadow-sm rounded-xl border-b-4 border-yellow-500 uppercase cursor-pointer">
                     <option value="Semua">Semua Ruangan</option>
                     <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
                 </select>
@@ -188,20 +209,21 @@
             const jamMulai = document.getElementById('jamMulai').value;
             const jamSelesai = document.getElementById('jamSelesai').value;
             const ruangan = document.getElementById('ruangan').value;
+            const bidang = document.getElementById('bidang').value;
 
-            if (!tgl) return Swal.fire('Gagal', 'Pilih tanggal terlebih dahulu!', 'error');
-            if (!jamMulai || !jamSelesai) return Swal.fire('Gagal', 'Pilih jam mulai & selesai!', 'error');
-            if (jamMulai >= jamSelesai) return Swal.fire('Gagal', 'Jam selesai harus setelah jam mulai!', 'error');
+            if (!tgl) return Swal.fire('Gagal', 'Pilih tanggal pada kalender!', 'error');
+            if (ruangan.includes('--')) return Swal.fire('Gagal', 'Pilih ruangan!', 'error');
+            if (bidang.includes('--')) return Swal.fire('Gagal', 'Pilih bidang!', 'error');
+            if (!jamMulai || !jamSelesai) return Swal.fire('Gagal', 'Tentukan jam mulai & selesai!', 'error');
+            if (jamMulai >= jamSelesai) return Swal.fire('Gagal', 'Jam selesai harus lebih besar dari jam mulai!', 'error');
 
-            // Logika Cek Bentrok: (StartA < EndB) AND (EndA > StartB)
+            // Cek Bentrok
             let isBentrok = false;
             let detailBentrok = "";
 
             allBookings.forEach(booking => {
-                // Hanya cek jika ruangan & tanggal sama, dan status bukan 'Rejected'
                 if (booking.ruangan === ruangan && booking.tanggal === tgl && booking.status !== 'Rejected') {
                     const [bMulai, bSelesai] = booking.jam.split(' - ');
-                    
                     if (jamMulai < bSelesai && jamSelesai > bMulai) {
                         isBentrok = true;
                         detailBentrok = `${booking.kegiatan} (${booking.jam})`;
@@ -212,14 +234,14 @@
             if (isBentrok) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Jadwal Bertabrakan!',
-                    html: `<p class="text-sm">Ruang <b>${ruangan}</b> sudah digunakan untuk:<br><br><span class="text-red-500 font-bold">${detailBentrok}</span><br><br>Silakan pilih jam atau ruangan lain.</p>`,
+                    title: 'Jadwal Bentrok!',
+                    html: `<p class="text-xs">Maaf, ruang <b>${ruangan}</b> sudah digunakan untuk:<br><br><span class="text-red-500 font-black uppercase italic">${detailBentrok}</span></p>`,
                     confirmButtonColor: '#1e3a8a'
                 });
-                return; // STOP PROSES
+                return;
             }
 
-            // JIKA LOLOS, BARU SIMPAN
+            // Simpan ke Firebase
             const id = Date.now().toString();
             db.ref('bookings/' + id).set({
                 id: id,
@@ -227,11 +249,11 @@
                 jam: `${jamMulai} - ${jamSelesai}`,
                 ruangan: ruangan,
                 kegiatan: document.getElementById('kegiatan').value,
-                bidang: document.getElementById('bidang').value,
+                bidang: bidang,
                 pj: document.getElementById('pj').value,
                 status: 'Pending'
             }).then(() => {
-                Swal.fire('Berhasil!', 'Reservasi Anda telah diajukan.', 'success');
+                Swal.fire('Sukses!', 'Pengajuan reservasi telah terkirim.', 'success');
                 document.getElementById('bookingForm').reset();
                 selectedDateStr = "";
                 initFormCalendar();
@@ -239,7 +261,7 @@
             });
         }
 
-        // --- RENDER FULLCALENDAR ---
+        // --- FULLCALENDAR RENDER ---
         function renderCalendar() {
             const calendarEl = document.getElementById('calendarMain');
             const filter = document.getElementById('filterRuangan').value;
@@ -267,9 +289,9 @@
 
         function showBookingDetail(p) {
             Swal.fire({
-                title: `<p class="text-sm font-black uppercase text-blue-900">${p.kegiatan}</p>`,
+                title: `<p class="text-xs font-black uppercase text-blue-900">${p.kegiatan}</p>`,
                 html: `
-                    <div class="text-left text-xs space-y-3 p-4 bg-gray-50 dark:bg-slate-900 rounded-2xl border dark:border-slate-700">
+                    <div class="text-left text-[10px] space-y-3 p-4 bg-gray-50 dark:bg-slate-900 rounded-2xl border dark:border-slate-700">
                         <p><i class="fas fa-door-open mr-2 text-blue-600"></i><strong>Ruang:</strong> ${p.ruangan}</p>
                         <p><i class="fas fa-clock mr-2 text-blue-600"></i><strong>Waktu:</strong> ${p.jam}</p>
                         <p><i class="fas fa-users mr-2 text-blue-600"></i><strong>Bidang:</strong> ${p.bidang}</p>
@@ -278,8 +300,8 @@
                     </div>
                     ${currentRole === 'admin' ? `
                         <div class="grid grid-cols-2 gap-2 mt-4">
-                            <button onclick="updateStatus('${p.id}', 'Approved')" class="bg-green-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Setujui</button>
-                            <button onclick="updateStatus('${p.id}', 'Rejected')" class="bg-red-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Tolak</button>
+                            <button onclick="updateStatus('${p.id}', 'Approved')" class="bg-green-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Approve</button>
+                            <button onclick="updateStatus('${p.id}', 'Rejected')" class="bg-red-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Reject</button>
                             <button onclick="hapusData('${p.id}')" class="col-span-2 bg-slate-800 text-white py-3 rounded-xl text-[10px] font-black uppercase mt-2">Hapus Data</button>
                         </div>
                     ` : ''}
