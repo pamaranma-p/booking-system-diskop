@@ -69,9 +69,9 @@
                 <div class="bg-gray-50 dark:bg-slate-800/50 p-5 border-b dark:border-slate-700">
                     <h3 class="font-black text-blue-900 dark:text-blue-400 text-xs uppercase italic"><i class="fas fa-edit mr-2 text-yellow-500"></i> Buat Permohonan Reservasi</h3>
                 </div>
-                <form id="bookingForm" onsubmit="simpanKeFirebase(event)" class="grid grid-cols-1 lg:grid-cols-3">
+                <form id="bookingForm" onsubmit="validasiDanSimpan(event)" class="grid grid-cols-1 lg:grid-cols-3">
                     <div class="p-6 lg:border-r border-gray-100 dark:border-slate-700">
-                        <label class="text-[10px] font-black text-gray-400 uppercase mb-4 block">1. Klik Tanggal</label>
+                        <label class="text-[10px] font-black text-gray-400 uppercase mb-4 block">1. Pilih Tanggal</label>
                         <div class="bg-gray-50 dark:bg-slate-900 p-4 rounded-2xl border">
                             <div class="flex justify-between items-center mb-4">
                                 <button type="button" onclick="prevMonth()"><i class="fas fa-chevron-left text-xs"></i></button>
@@ -129,10 +129,7 @@
             </div>
 
             <div id="calendarMain"></div>
-
-            <div id="loader" class="p-20 text-center font-black text-gray-400 animate-pulse uppercase text-[10px]">
-                Menyelaraskan Agenda...
-            </div>
+            <div id="loader" class="p-20 text-center font-black text-gray-400 animate-pulse uppercase text-[10px]">Menyelaraskan Agenda...</div>
         </section>
 
         <footer class="bg-blue-900 text-white py-8 px-6 mt-12 border-t-8 border-yellow-500 text-center">
@@ -141,7 +138,7 @@
     </div>
 
     <script>
-        // --- Firebase Config ---
+        // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = { databaseURL: "https://e-booking-eed92-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -156,12 +153,12 @@
         window.onload = () => {
             detectRole();
             initTheme();
+            tarikDataFirebase();
             if (currentRole === 'user') {
                 generateTimeOptions('hoursMulai', 'minsMulai', 'jamMulai');
                 generateTimeOptions('hoursSelesai', 'minsSelesai', 'jamSelesai');
                 initFormCalendar();
             }
-            tarikDataFirebase();
         };
 
         function detectRole() {
@@ -175,7 +172,6 @@
             document.getElementById('roleLabel').innerText = "AKSES: " + currentRole.toUpperCase();
         }
 
-        // --- Firebase Handlers ---
         function tarikDataFirebase() {
             db.ref('bookings').on('value', (snap) => {
                 allBookings = [];
@@ -184,69 +180,72 @@
             });
         }
 
-        function simpanKeFirebase(e) {
+        // --- FUNGSI VALIDASI BENTROK JAM ---
+        function validasiDanSimpan(e) {
             e.preventDefault();
             
             const tgl = document.getElementById('tanggal').value;
             const jamMulai = document.getElementById('jamMulai').value;
             const jamSelesai = document.getElementById('jamSelesai').value;
-            const ruanganPilihan = document.getElementById('ruangan').value;
+            const ruangan = document.getElementById('ruangan').value;
 
-            // Validasi Dasar
-            if (!tgl) return Swal.fire('Error', 'Pilih tanggal pada kalender!', 'warning');
-            if (!jamMulai || !jamSelesai) return Swal.fire('Error', 'Tentukan jam mulai dan selesai!', 'warning');
-            if (jamMulai >= jamSelesai) return Swal.fire('Error', 'Jam selesai harus lebih besar dari jam mulai!', 'warning');
+            if (!tgl) return Swal.fire('Gagal', 'Pilih tanggal terlebih dahulu!', 'error');
+            if (!jamMulai || !jamSelesai) return Swal.fire('Gagal', 'Pilih jam mulai & selesai!', 'error');
+            if (jamMulai >= jamSelesai) return Swal.fire('Gagal', 'Jam selesai harus setelah jam mulai!', 'error');
 
-            // --- VALIDASI BENTROK (Overlap Detection) ---
-            const isBentrok = allBookings.some(b => {
-                // Abaikan jika status rejected
-                if (b.status === 'Rejected') return false;
-                
-                // Cek jika di tanggal dan ruangan yang sama
-                if (b.tanggal === tgl && b.ruangan === ruanganPilihan) {
-                    const [bMulai, bSelesai] = b.jam.split(' - ');
-                    // Rumus Overlap: (StartA < EndB) AND (EndA > StartB)
-                    return (jamMulai < bSelesai && jamSelesai > bMulai);
+            // Logika Cek Bentrok: (StartA < EndB) AND (EndA > StartB)
+            let isBentrok = false;
+            let detailBentrok = "";
+
+            allBookings.forEach(booking => {
+                // Hanya cek jika ruangan & tanggal sama, dan status bukan 'Rejected'
+                if (booking.ruangan === ruangan && booking.tanggal === tgl && booking.status !== 'Rejected') {
+                    const [bMulai, bSelesai] = booking.jam.split(' - ');
+                    
+                    if (jamMulai < bSelesai && jamSelesai > bMulai) {
+                        isBentrok = true;
+                        detailBentrok = `${booking.kegiatan} (${booking.jam})`;
+                    }
                 }
-                return false;
             });
 
             if (isBentrok) {
-                return Swal.fire({
+                Swal.fire({
                     icon: 'error',
-                    title: 'Jadwal Bentrok!',
-                    text: `Maaf, ruang ${ruanganPilihan} sudah dipesan pada jam tersebut. Silakan cek kalender kembali.`,
+                    title: 'Jadwal Bertabrakan!',
+                    html: `<p class="text-sm">Ruang <b>${ruangan}</b> sudah digunakan untuk:<br><br><span class="text-red-500 font-bold">${detailBentrok}</span><br><br>Silakan pilih jam atau ruangan lain.</p>`,
                     confirmButtonColor: '#1e3a8a'
                 });
+                return; // STOP PROSES
             }
 
-            // Jika aman, simpan
+            // JIKA LOLOS, BARU SIMPAN
             const id = Date.now().toString();
             db.ref('bookings/' + id).set({
                 id: id,
                 tanggal: tgl,
                 jam: `${jamMulai} - ${jamSelesai}`,
-                ruangan: ruanganPilihan,
+                ruangan: ruangan,
                 kegiatan: document.getElementById('kegiatan').value,
                 bidang: document.getElementById('bidang').value,
                 pj: document.getElementById('pj').value,
                 status: 'Pending'
             }).then(() => {
-                Swal.fire('Berhasil!', 'Reservasi terkirim! Menunggu konfirmasi Admin.', 'success');
+                Swal.fire('Berhasil!', 'Reservasi Anda telah diajukan.', 'success');
                 document.getElementById('bookingForm').reset();
-                selectedDateStr = ""; 
+                selectedDateStr = "";
                 initFormCalendar();
                 document.getElementById('selectedDateDisplay').innerText = "Belum pilih tanggal";
             });
         }
 
-        // --- Render Calendar ---
+        // --- RENDER FULLCALENDAR ---
         function renderCalendar() {
             const calendarEl = document.getElementById('calendarMain');
             const filter = document.getElementById('filterRuangan').value;
-            const data = (filter === 'Semua') ? allBookings : allBookings.filter(b => b.ruangan === filter);
+            const filteredData = (filter === 'Semua') ? allBookings : allBookings.filter(b => b.ruangan === filter);
 
-            const events = data.map(b => ({
+            const events = filteredData.map(b => ({
                 id: b.id,
                 title: `[${b.ruangan}] ${b.kegiatan}`,
                 start: b.tanggal,
@@ -255,7 +254,6 @@
             }));
 
             if (calendar) calendar.destroy();
-
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'id',
@@ -280,9 +278,9 @@
                     </div>
                     ${currentRole === 'admin' ? `
                         <div class="grid grid-cols-2 gap-2 mt-4">
-                            <button onclick="updateStatus('${p.id}', 'Approved')" class="bg-green-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Approve</button>
-                            <button onclick="updateStatus('${p.id}', 'Rejected')" class="bg-red-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Reject</button>
-                            <button onclick="hapusData('${p.id}')" class="col-span-2 bg-slate-800 text-white py-3 rounded-xl text-[10px] font-black uppercase mt-2">Hapus Permanen</button>
+                            <button onclick="updateStatus('${p.id}', 'Approved')" class="bg-green-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Setujui</button>
+                            <button onclick="updateStatus('${p.id}', 'Rejected')" class="bg-red-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Tolak</button>
+                            <button onclick="hapusData('${p.id}')" class="col-span-2 bg-slate-800 text-white py-3 rounded-xl text-[10px] font-black uppercase mt-2">Hapus Data</button>
                         </div>
                     ` : ''}
                 `,
@@ -292,7 +290,7 @@
             });
         }
 
-        // --- Mini Calendar Logic ---
+        // --- MINI CALENDAR (FORM) ---
         function initFormCalendar() {
             const grid = document.getElementById('calendarGrid');
             const monthLabel = document.getElementById('calendarMonth');
@@ -324,7 +322,7 @@
         function prevMonth() { currentFormDate.setMonth(currentFormDate.getMonth() - 1); initFormCalendar(); }
         function nextMonth() { currentFormDate.setMonth(currentFormDate.getMonth() + 1); initFormCalendar(); }
 
-        // --- Time Picker Helpers ---
+        // --- TIME PICKER ---
         function generateTimeOptions(targetHours, targetMins, inputId) {
             const hDiv = document.getElementById(targetHours);
             const mDiv = document.getElementById(targetMins);
@@ -351,15 +349,14 @@
         }
         function closeTimePicker(id) { document.getElementById(id).style.display = 'none'; }
 
-        // --- Admin Functions ---
+        // --- ADMIN ACTIONS ---
         function updateStatus(id, newStatus) {
             db.ref('bookings/' + id).update({ status: newStatus }).then(() => Swal.close());
         }
 
         function hapusData(id) {
             Swal.fire({
-                title: 'Hapus Data?',
-                text: "Data tidak bisa dikembalikan!",
+                title: 'Hapus Permanen?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -367,18 +364,17 @@
             }).then((res) => { if(res.isConfirmed) { db.ref('bookings/' + id).remove(); Swal.close(); } });
         }
 
-        // --- Theme & Dark Mode ---
         function toggleDarkMode() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            document.getElementById('themeIcon').classList.replace(isDark ? 'fa-moon' : 'fa-sun', isDark ? 'fa-sun' : 'fa-moon');
+            document.getElementById('themeIcon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
             if(calendar) renderCalendar();
         }
 
         function initTheme() {
             if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
-                document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
             }
         }
     </script>
