@@ -10,7 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <!-- Library Tambahan untuk Download Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -21,7 +24,7 @@
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; }
         .bg-jateng { background-color: #1e3a8a; }
         
-        /* FullCalendar Custom Style */
+        /* Custom FullCalendar agar menyatu dengan UI */
         .fc { background: white; border-radius: 2rem; padding: 20px; border: none !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         .dark .fc { background: #1e293b; color: white; border: 1px solid #334155 !important; }
         .fc-event { cursor: pointer; border: none; padding: 4px 8px; font-size: 10px; font-weight: 800; border-radius: 6px; margin: 1px 0; text-transform: uppercase; }
@@ -29,7 +32,7 @@
         .dark .fc-toolbar-title { color: #facc15; }
         .fc-button-primary { background-color: #1e3a8a !important; border: none !important; font-size: 11px !important; font-weight: 800 !important; text-transform: uppercase; border-radius: 10px !important; }
         
-        /* Mini Calendar Form */
+        /* Form Calendar Mini */
         .calendar-day { transition: all 0.2s; cursor: pointer; height: 35px; width: 35px; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 10px; }
         .calendar-day.selected { background-color: #1e3a8a !important; color: white !important; }
         
@@ -39,15 +42,12 @@
         .time-column { height: 120px; overflow-y: auto; scrollbar-width: none; }
         .time-unit { padding: 0.5rem; text-align: center; cursor: pointer; border-radius: 0.5rem; font-weight: bold; font-size: 14px; }
         .time-unit.active { background: #1e3a8a; color: white; }
-
-        /* Custom Scrollbar for Long List */
-        select option { padding: 10px; font-weight: 600; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-gray-100">
 
     <div id="appContent">
-        <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-[100] border-b-4 border-yellow-500">
+        <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z- border-b-4 border-yellow-500">
             <div class="container mx-auto px-6 py-3 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-10">
@@ -75,9 +75,9 @@
                 <div class="bg-gray-50 dark:bg-slate-800/50 p-5 border-b dark:border-slate-700">
                     <h3 class="font-black text-blue-900 dark:text-blue-400 text-xs uppercase italic"><i class="fas fa-edit mr-2 text-yellow-500"></i> Buat Permohonan Reservasi</h3>
                 </div>
-                <form id="bookingForm" onsubmit="validasiDanSimpan(event)" class="grid grid-cols-1 lg:grid-cols-3">
+                <form id="bookingForm" onsubmit="simpanKeFirebase(event)" class="grid grid-cols-1 lg:grid-cols-3">
                     <div class="p-6 lg:border-r border-gray-100 dark:border-slate-700">
-                        <label class="text-[10px] font-black text-gray-400 uppercase mb-4 block">1. Pilih Tanggal</label>
+                        <label class="text-[10px] font-black text-gray-400 uppercase mb-4 block">1. Klik Tanggal</label>
                         <div class="bg-gray-50 dark:bg-slate-900 p-4 rounded-2xl border">
                             <div class="flex justify-between items-center mb-4">
                                 <button type="button" onclick="prevMonth()"><i class="fas fa-chevron-left text-xs"></i></button>
@@ -93,26 +93,13 @@
                     <div class="lg:col-span-2 p-6 space-y-4">
                         <label class="text-[10px] font-black text-gray-400 uppercase block">2. Detail Kegiatan</label>
                         <input type="text" id="kegiatan" placeholder="Nama Kegiatan" required class="w-full p-3 bg-gray-50 dark:bg-slate-900 rounded-xl outline-none focus:ring-2 ring-blue-500 text-sm font-semibold">
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <select id="ruangan" class="p-3 bg-gray-50 dark:bg-slate-900 rounded-xl font-bold text-xs uppercase cursor-pointer">
-                                <option disabled selected>-- PILIH RUANGAN --</option>
+                        <div class="grid grid-cols-2 gap-4">
+                            <select id="ruangan" class="p-3 bg-gray-50 dark:bg-slate-900 rounded-xl font-bold text-xs uppercase">
                                 <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
                             </select>
-                            
-                            <select id="bidang" class="p-3 bg-gray-50 dark:bg-slate-900 rounded-xl font-bold text-[10px] uppercase cursor-pointer overflow-hidden text-ellipsis">
-                                <option disabled selected>-- PILIH BIDANG --</option>
-                                <option>UMPEG</option>
-                                <option>PROGRAM</option>
-                                <option>KEUANGAN</option>
-                                <option>BINA USAHA KOPERASI</option>
-                                <option>PENGEMBANGAN DAN DAYA SAING USAHA KECIL MENENGAH</option>
-                                <option>KELEMBAGAAN DAN PENGAWASAN KOPERASI</option>
-                                <option>PEMBERDAYAAN DAN PEMBIAYAAN USAHA KECIL DAN MENENGAH</option>
-                                <option>BALATKOP UKMK</option>
-                                <option>DHARMA WANITA</option>
+                            <select id="bidang" class="p-3 bg-gray-50 dark:bg-slate-900 rounded-xl font-bold text-xs uppercase">
+                                <option>UMPEG</option><option>KEUANGAN</option><option>PROGRAM</option><option>PEMASARAN</option>
                             </select>
-
                             <div class="relative">
                                 <input type="text" id="jamMulai" placeholder="Mulai" readonly onclick="toggleTimePicker('pickerMulai')" class="w-full p-3 bg-gray-50 dark:bg-slate-900 rounded-xl text-xs font-bold text-center cursor-pointer">
                                 <div id="pickerMulai" class="time-picker-overlay">
@@ -120,7 +107,6 @@
                                     <button type="button" onclick="closeTimePicker('pickerMulai')" class="w-full mt-3 bg-blue-900 text-white py-2 rounded-xl text-[10px] font-bold uppercase">Set Jam</button>
                                 </div>
                             </div>
-
                             <div class="relative">
                                 <input type="text" id="jamSelesai" placeholder="Selesai" readonly onclick="toggleTimePicker('pickerSelesai')" class="w-full p-3 bg-gray-50 dark:bg-slate-900 rounded-xl text-xs font-bold text-center cursor-pointer">
                                 <div id="pickerSelesai" class="time-picker-overlay">
@@ -129,7 +115,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <input type="text" id="pj" placeholder="PIC (Penanggung Jawab)" required class="w-full p-3 bg-gray-50 dark:bg-slate-900 rounded-xl text-sm font-bold uppercase">
                         <button type="submit" class="w-full bg-blue-700 text-white font-black py-4 rounded-xl hover:bg-blue-800 uppercase text-xs tracking-widest shadow-lg transition active:scale-95">Ajukan Reservasi</button>
                     </div>
@@ -140,17 +125,27 @@
         <section class="container mx-auto px-6 py-12">
             <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
                 <div>
-                    <h3 class="font-[900] text-2xl text-blue-900 dark:text-white uppercase italic tracking-tighter">Jadwal Kalender</h3>
+                    <h3 class="font-900 text-2xl text-blue-900 dark:text-white uppercase italic tracking-tighter">Jadwal Kalender</h3>
                     <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Visualisasi Penggunaan Ruangan</p>
                 </div>
-                <select id="filterRuangan" onchange="renderCalendar()" class="w-full md:w-auto text-[10px] font-black px-4 py-3 bg-white dark:bg-slate-800 shadow-sm rounded-xl border-b-4 border-yellow-500 uppercase cursor-pointer">
-                    <option value="Semua">Semua Ruangan</option>
-                    <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
-                </select>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <!-- Fitur Baru: Tombol Download -->
+                    <button onclick="downloadRekapan()" class="text-[10px] font-black px-4 py-3 bg-green-600 text-white shadow-sm rounded-xl border-b-4 border-green-800 uppercase hover:bg-green-700 transition active:scale-95">
+                        <i class="fas fa-file-excel mr-2"></i> Unduh Rekap
+                    </button>
+
+                    <select id="filterRuangan" onchange="renderCalendar()" class="text-[10px] font-black px-4 py-3 bg-white dark:bg-slate-800 shadow-sm rounded-xl border-b-4 border-yellow-500 uppercase">
+                        <option value="Semua">Semua Ruangan</option>
+                        <option>GATOTKACA</option><option>ARJUNA</option><option>ARIMBI</option><option>PODCAST</option>
+                    </select>
+                </div>
             </div>
 
             <div id="calendarMain"></div>
-            <div id="loader" class="p-20 text-center font-black text-gray-400 animate-pulse uppercase text-[10px]">Menyelaraskan Agenda...</div>
+
+            <div id="loader" class="p-20 text-center font-black text-gray-400 animate-pulse uppercase text-[10px]">
+                Menyelaraskan Agenda...
+            </div>
         </section>
 
         <footer class="bg-blue-900 text-white py-8 px-6 mt-12 border-t-8 border-yellow-500 text-center">
@@ -159,7 +154,7 @@
     </div>
 
     <script>
-        // --- KONFIGURASI FIREBASE ---
+        // --- Firebase & Initial Config ---
         const firebaseConfig = { databaseURL: "https://e-booking-eed92-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -174,100 +169,32 @@
         window.onload = () => {
             detectRole();
             initTheme();
-            tarikDataFirebase();
             if (currentRole === 'user') {
                 generateTimeOptions('hoursMulai', 'minsMulai', 'jamMulai');
                 generateTimeOptions('hoursSelesai', 'minsSelesai', 'jamSelesai');
                 initFormCalendar();
             }
+            tarikDataFirebase();
         };
 
         function detectRole() {
             const params = new URLSearchParams(window.location.search);
             const role = params.get('role');
-            if (role === 'adm102299384477') currentRole = 'admin';
-            else if (role === 'usr10298885432') {
+            if (role === 'adalahadmin') currentRole = 'admin';
+            else if (role === 'adalahuser') {
                 currentRole = 'user';
                 document.getElementById('userFormSection').classList.remove('hidden');
             }
             document.getElementById('roleLabel').innerText = "AKSES: " + currentRole.toUpperCase();
         }
 
-        function tarikDataFirebase() {
-            db.ref('bookings').on('value', (snap) => {
-                allBookings = [];
-                snap.forEach(child => { allBookings.push(child.val()); });
-                renderCalendar();
-            });
-        }
-
-        // --- FUNGSI VALIDASI BENTROK JAM ---
-        function validasiDanSimpan(e) {
-            e.preventDefault();
-            
-            const tgl = document.getElementById('tanggal').value;
-            const jamMulai = document.getElementById('jamMulai').value;
-            const jamSelesai = document.getElementById('jamSelesai').value;
-            const ruangan = document.getElementById('ruangan').value;
-            const bidang = document.getElementById('bidang').value;
-
-            if (!tgl) return Swal.fire('Gagal', 'Pilih tanggal pada kalender!', 'error');
-            if (ruangan.includes('--')) return Swal.fire('Gagal', 'Pilih ruangan!', 'error');
-            if (bidang.includes('--')) return Swal.fire('Gagal', 'Pilih bidang!', 'error');
-            if (!jamMulai || !jamSelesai) return Swal.fire('Gagal', 'Tentukan jam mulai & selesai!', 'error');
-            if (jamMulai >= jamSelesai) return Swal.fire('Gagal', 'Jam selesai harus lebih besar dari jam mulai!', 'error');
-
-            // Cek Bentrok
-            let isBentrok = false;
-            let detailBentrok = "";
-
-            allBookings.forEach(booking => {
-                if (booking.ruangan === ruangan && booking.tanggal === tgl && booking.status !== 'Rejected') {
-                    const [bMulai, bSelesai] = booking.jam.split(' - ');
-                    if (jamMulai < bSelesai && jamSelesai > bMulai) {
-                        isBentrok = true;
-                        detailBentrok = `${booking.kegiatan} (${booking.jam})`;
-                    }
-                }
-            });
-
-            if (isBentrok) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Jadwal Bentrok!',
-                    html: `<p class="text-xs">Maaf, ruang <b>${ruangan}</b> sudah digunakan untuk:<br><br><span class="text-red-500 font-black uppercase italic">${detailBentrok}</span></p>`,
-                    confirmButtonColor: '#1e3a8a'
-                });
-                return;
-            }
-
-            // Simpan ke Firebase
-            const id = Date.now().toString();
-            db.ref('bookings/' + id).set({
-                id: id,
-                tanggal: tgl,
-                jam: `${jamMulai} - ${jamSelesai}`,
-                ruangan: ruangan,
-                kegiatan: document.getElementById('kegiatan').value,
-                bidang: bidang,
-                pj: document.getElementById('pj').value,
-                status: 'Pending'
-            }).then(() => {
-                Swal.fire('Sukses!', 'Pengajuan reservasi telah terkirim.', 'success');
-                document.getElementById('bookingForm').reset();
-                selectedDateStr = "";
-                initFormCalendar();
-                document.getElementById('selectedDateDisplay').innerText = "Belum pilih tanggal";
-            });
-        }
-
-        // --- FULLCALENDAR RENDER ---
+        // --- FullCalendar Integration ---
         function renderCalendar() {
             const calendarEl = document.getElementById('calendarMain');
             const filter = document.getElementById('filterRuangan').value;
-            const filteredData = (filter === 'Semua') ? allBookings : allBookings.filter(b => b.ruangan === filter);
+            const data = (filter === 'Semua') ? allBookings : allBookings.filter(b => b.ruangan === filter);
 
-            const events = filteredData.map(b => ({
+            const events = data.map(b => ({
                 id: b.id,
                 title: `[${b.ruangan}] ${b.kegiatan}`,
                 start: b.tanggal,
@@ -276,6 +203,7 @@
             }));
 
             if (calendar) calendar.destroy();
+
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'id',
@@ -289,9 +217,9 @@
 
         function showBookingDetail(p) {
             Swal.fire({
-                title: `<p class="text-xs font-black uppercase text-blue-900">${p.kegiatan}</p>`,
+                title: `<p class="text-sm font-black uppercase text-blue-900">${p.kegiatan}</p>`,
                 html: `
-                    <div class="text-left text-[10px] space-y-3 p-4 bg-gray-50 dark:bg-slate-900 rounded-2xl border dark:border-slate-700">
+                    <div class="text-left text-xs space-y-3 p-4 bg-gray-50 dark:bg-slate-900 rounded-2xl border dark:border-slate-700">
                         <p><i class="fas fa-door-open mr-2 text-blue-600"></i><strong>Ruang:</strong> ${p.ruangan}</p>
                         <p><i class="fas fa-clock mr-2 text-blue-600"></i><strong>Waktu:</strong> ${p.jam}</p>
                         <p><i class="fas fa-users mr-2 text-blue-600"></i><strong>Bidang:</strong> ${p.bidang}</p>
@@ -302,7 +230,7 @@
                         <div class="grid grid-cols-2 gap-2 mt-4">
                             <button onclick="updateStatus('${p.id}', 'Approved')" class="bg-green-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Approve</button>
                             <button onclick="updateStatus('${p.id}', 'Rejected')" class="bg-red-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Reject</button>
-                            <button onclick="hapusData('${p.id}')" class="col-span-2 bg-slate-800 text-white py-3 rounded-xl text-[10px] font-black uppercase mt-2">Hapus Data</button>
+                            <button onclick="hapusData('${p.id}')" class="col-span-2 bg-slate-800 text-white py-3 rounded-xl text-[10px] font-black uppercase mt-2">Hapus Permanen</button>
                         </div>
                     ` : ''}
                 `,
@@ -312,7 +240,7 @@
             });
         }
 
-        // --- MINI CALENDAR (FORM) ---
+        // --- Logic Mini Calendar di Form ---
         function initFormCalendar() {
             const grid = document.getElementById('calendarGrid');
             const monthLabel = document.getElementById('calendarMonth');
@@ -344,7 +272,7 @@
         function prevMonth() { currentFormDate.setMonth(currentFormDate.getMonth() - 1); initFormCalendar(); }
         function nextMonth() { currentFormDate.setMonth(currentFormDate.getMonth() + 1); initFormCalendar(); }
 
-        // --- TIME PICKER ---
+        // --- Time Picker Helpers ---
         function generateTimeOptions(targetHours, targetMins, inputId) {
             const hDiv = document.getElementById(targetHours);
             const mDiv = document.getElementById(targetMins);
@@ -371,14 +299,45 @@
         }
         function closeTimePicker(id) { document.getElementById(id).style.display = 'none'; }
 
-        // --- ADMIN ACTIONS ---
+        // --- Firebase Handlers ---
+        function tarikDataFirebase() {
+            db.ref('bookings').on('value', (snap) => {
+                allBookings = [];
+                snap.forEach(child => { allBookings.push(child.val()); });
+                renderCalendar();
+            });
+        }
+
+        function simpanKeFirebase(e) {
+            e.preventDefault();
+            const tgl = document.getElementById('tanggal').value;
+            if(!tgl) return Swal.fire('Error', 'Pilih tanggal pada kalender!', 'warning');
+            
+            const id = Date.now().toString();
+            db.ref('bookings/' + id).set({
+                id: id,
+                tanggal: tgl,
+                jam: document.getElementById('jamMulai').value + ' - ' + document.getElementById('jamSelesai').value,
+                ruangan: document.getElementById('ruangan').value,
+                kegiatan: document.getElementById('kegiatan').value,
+                bidang: document.getElementById('bidang').value,
+                pj: document.getElementById('pj').value,
+                status: 'Pending'
+            }).then(() => {
+                Swal.fire('Berhasil!', 'Reservasi terkirim!', 'success');
+                document.getElementById('bookingForm').reset();
+                selectedDateStr = ""; initFormCalendar();
+            });
+        }
+
         function updateStatus(id, newStatus) {
             db.ref('bookings/' + id).update({ status: newStatus }).then(() => Swal.close());
         }
 
         function hapusData(id) {
             Swal.fire({
-                title: 'Hapus Permanen?',
+                title: 'Hapus Data?',
+                text: "Data tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -389,15 +348,69 @@
         function toggleDarkMode() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            document.getElementById('themeIcon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            document.getElementById('themeIcon').classList.replace(isDark ? 'fa-moon' : 'fa-sun', isDark ? 'fa-sun' : 'fa-moon');
             if(calendar) renderCalendar();
         }
 
         function initTheme() {
             if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
+                document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
             }
+        }
+
+        // --- Fungsi Baru: Download Rekapan Bulanan ---
+        function downloadRekapan() {
+            if (allBookings.length === 0) {
+                return Swal.fire('Gagal', 'Tidak ada data untuk diunduh', 'error');
+            }
+
+            // Ambil bulan & tahun yang sedang aktif di FullCalendar
+            const currentViewDate = calendar.getDate();
+            const currentMonth = currentViewDate.getMonth();
+            const currentYear = currentViewDate.getFullYear();
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+            // Filter data berdasarkan bulan & tahun tersebut
+            const filteredData = allBookings.filter(b => {
+                const d = new Date(b.tanggal);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            }).sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+
+            if (filteredData.length === 0) {
+                return Swal.fire('Info', `Tidak ada booking pada bulan ${monthNames[currentMonth]} ${currentYear}`, 'info');
+            }
+
+            // Map data untuk format Excel
+            const dataExcel = filteredData.map((b, index) => ({
+                "No": index + 1,
+                "Tanggal": b.tanggal,
+                "Waktu": b.jam,
+                "Ruangan": b.ruangan,
+                "Kegiatan": b.kegiatan,
+                "Bidang": b.bidang,
+                "PIC": b.pj,
+                "Status": b.status
+            }));
+
+            // Generate Workbook
+            const worksheet = XLSX.utils.json_to_sheet(dataExcel);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Booking");
+
+            // Nama file dinamis
+            const fileName = `REKAP_BOOKING_${monthNames[currentMonth].toUpperCase()}_${currentYear}.xlsx`;
+            
+            // Proses Download
+            XLSX.writeFile(workbook, fileName);
+            
+            Swal.fire({
+                title: 'Berhasil!',
+                text: `Rekapan bulan ${monthNames[currentMonth]} telah diunduh.`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
         }
     </script>
 </body>
