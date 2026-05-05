@@ -184,7 +184,6 @@
 
 <script>
 const firebaseConfig = {
-    // Ganti link di bawah ini dengan link yang Anda dapatkan dari Firebase
     databaseURL: "https://databasebooking-cfa37-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 
@@ -267,6 +266,19 @@ function renderCalendar() {
 }
 
 function showBookingDetail(p) {
+    let adminControls = "";
+    
+    // Jika role admin, tampilkan tombol aksi
+    if (currentRole === 'admin') {
+        adminControls = `
+            <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t dark:border-slate-700">
+                <button onclick="updateStatus('${p.id}', 'Approved')" class="bg-green-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase">Terima</button>
+                <button onclick="updateStatus('${p.id}', 'Rejected')" class="bg-red-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase">Tolak</button>
+                <button onclick="hapusBooking('${p.id}')" class="bg-gray-800 text-white text-[10px] font-bold py-2 rounded-lg uppercase">Hapus</button>
+            </div>
+        `;
+    }
+
     Swal.fire({
         title: `<p class="text-sm font-black uppercase text-blue-900">${p.kegiatan}</p>`,
         html: `
@@ -275,11 +287,40 @@ function showBookingDetail(p) {
                 <p><strong>Waktu:</strong> ${p.jam}</p>
                 <p><strong>Bidang:</strong> ${p.bidang}</p>
                 <p><strong>PIC:</strong> ${p.pj}</p>
-                <p><strong>Status:</strong> ${p.status}</p>
+                <p><strong>Status:</strong> <span class="px-2 py-1 rounded text-[9px] font-bold ${p.status === 'Approved' ? 'bg-green-100 text-green-700' : p.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">${p.status}</span></p>
             </div>
+            ${adminControls}
         `,
         showConfirmButton: false,
         showCloseButton: true
+    });
+}
+
+// FUNGSI ADMIN: UPDATE STATUS
+function updateStatus(id, statusBaru) {
+    db.ref('bookings/' + id).update({
+        status: statusBaru
+    }).then(() => {
+        Swal.fire('Berhasil', `Status diperbarui menjadi ${statusBaru}`, 'success');
+    });
+}
+
+// FUNGSI ADMIN: HAPUS
+function hapusBooking(id) {
+    Swal.fire({
+        title: 'Hapus Reservasi?',
+        text: "Data yang dihapus tidak bisa dikembalikan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            db.ref('bookings/' + id).remove().then(() => {
+                Swal.fire('Terhapus!', 'Data telah dihapus.', 'success');
+            });
+        }
     });
 }
 
@@ -368,7 +409,6 @@ function tarikDataFirebase() {
     });
 }
 
-// LOGIKA DETEKSI TABRAKAN WAKTU
 function isOverlapping(newStart, newEnd, existingRange) {
     const [exStartStr, exEndStr] = existingRange.split(' - ');
     const toMin = (s) => {
@@ -393,7 +433,6 @@ async function simpanKeFirebase(e) {
         return Swal.fire('Error', 'Pilih tanggal dan tentukan jam!', 'warning');
     }
 
-    // CEK BENTROK JADWAL
     const bentrok = allBookings.find(b => {
         return b.tanggal === tgl && 
                b.ruangan === ruangan && 
@@ -438,9 +477,7 @@ function initTheme() {
     }
 }
 
-/* HANYA ADMIN BISA DOWNLOAD */
 function downloadRekapan() {
-    // PROTEKSI LOGIN/ROLE
     if (currentRole !== 'admin') {
         return Swal.fire('Akses Ditolak', 'Hanya admin yang dapat mengunduh rekap.', 'error');
     }
