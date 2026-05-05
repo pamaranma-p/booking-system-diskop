@@ -43,7 +43,7 @@
 <body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-gray-100">
 
 <div id="appContent">
-    <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z- border-b-4 border-yellow-500">
+    <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-50 border-b-4 border-yellow-500">
         <div class="container mx-auto px-6 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Coat_of_arms_of_Central_Java.svg/960px-Coat_of_arms_of_Central_Java.svg.png" class="h-10">
@@ -156,8 +156,6 @@
             </div>
 
             <div class="flex gap-2 w-full md:w-auto">
-
-                <!-- HANYA ADMIN -->
                 <button id="downloadBtn" onclick="downloadRekapan()" class="hidden text-[10px] font-black px-4 py-3 bg-green-600 text-white shadow-sm rounded-xl border-b-4 border-green-800 uppercase hover:bg-green-700 transition active:scale-95">
                     <i class="fas fa-file-excel mr-2"></i> Unduh Rekap
                 </button>
@@ -287,19 +285,13 @@ function showBookingDetail(p) {
 function initFormCalendar() {
     const grid = document.getElementById('calendarGrid');
     const monthLabel = document.getElementById('calendarMonth');
-
     const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-
     grid.innerHTML = '';
-
     const year = currentFormDate.getFullYear();
     const month = currentFormDate.getMonth();
-
     monthLabel.innerText = `${months[month]} ${year}`;
-
     const firstDay = new Date(year, month, 1).getDay();
     const days = new Date(year, month + 1, 0).getDate();
-
     let offset = firstDay === 0 ? 6 : firstDay - 1;
 
     ['S','S','R','K','J','S','M'].forEach(h => {
@@ -312,7 +304,6 @@ function initFormCalendar() {
 
     for (let d = 1; d <= days; d++) {
         const ds = `${year}-${String(month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
         grid.innerHTML += `
             <div onclick="selectDate('${ds}')" class="calendar-day ${selectedDateStr === ds ? 'selected' : ''}">
                 ${d}
@@ -326,7 +317,6 @@ function selectDate(date) {
     document.getElementById('tanggal').value = date;
     document.getElementById('selectedDateDisplay').innerText =
         new Date(date).toLocaleDateString('id-ID', { dateStyle: 'full' });
-
     initFormCalendar();
 }
 
@@ -343,18 +333,18 @@ function nextMonth() {
 function generateTimeOptions(targetHours, targetMins, inputId) {
     const hDiv = document.getElementById(targetHours);
     const mDiv = document.getElementById(targetMins);
-
     for (let i = 7; i <= 18; i++) {
         const val = String(i).padStart(2, '0');
         hDiv.innerHTML += `<div class="time-unit" onclick="setTimePart('${inputId}','H','${val}',this)">${val}</div>`;
     }
-
     ['00','15','30','45'].forEach(val => {
         mDiv.innerHTML += `<div class="time-unit" onclick="setTimePart('${inputId}','M','${val}',this)">${val}</div>`;
     });
 }
 
 function setTimePart(inputId, type, val, el) {
+    const container = el.parentElement;
+    container.querySelectorAll('.time-unit').forEach(u => u.classList.remove('active'));
     tempTime[inputId][type] = val;
     el.classList.add('active');
     document.getElementById(inputId).value = `${tempTime[inputId].H}:${tempTime[inputId].M}`;
@@ -377,22 +367,53 @@ function tarikDataFirebase() {
     });
 }
 
-function simpanKeFirebase(e) {
+// LOGIKA DETEKSI TABRAKAN WAKTU
+function isOverlapping(newStart, newEnd, existingRange) {
+    const [exStartStr, exEndStr] = existingRange.split(' - ');
+    const toMin = (s) => {
+        const [h, m] = s.split(':').map(Number);
+        return h * 60 + m;
+    };
+    const nS = toMin(newStart);
+    const nE = toMin(newEnd);
+    const eS = toMin(exStartStr);
+    const eE = toMin(exEndStr);
+    return nS < eE && nE > eS;
+}
+
+async function simpanKeFirebase(e) {
     e.preventDefault();
-
     const tgl = document.getElementById('tanggal').value;
+    const jamMulai = document.getElementById('jamMulai').value;
+    const jamSelesai = document.getElementById('jamSelesai').value;
+    const ruangan = document.getElementById('ruangan').value;
 
-    if (!tgl) {
-        return Swal.fire('Error', 'Pilih tanggal pada kalender!', 'warning');
+    if (!tgl || !jamMulai || !jamSelesai) {
+        return Swal.fire('Error', 'Pilih tanggal dan tentukan jam!', 'warning');
+    }
+
+    // CEK BENTROK JADWAL
+    const bentrok = allBookings.find(b => {
+        return b.tanggal === tgl && 
+               b.ruangan === ruangan && 
+               b.status !== 'Rejected' && 
+               isOverlapping(jamMulai, jamSelesai, b.jam);
+    });
+
+    if (bentrok) {
+        return Swal.fire({
+            icon: 'error',
+            title: 'Jadwal Bentrok!',
+            text: `Ruangan ${ruangan} sudah dibooking untuk kegiatan: "${bentrok.kegiatan}" pada jam ${bentrok.jam}.`,
+        });
     }
 
     const id = Date.now().toString();
-
     db.ref('bookings/' + id).set({
         id: id,
         tanggal: tgl,
-        jam: document.getElementById('jamMulai').value + ' - ' + document.getElementById('jamSelesai').value,
-        ruangan: document.getElementById('ruangan').value,
+        jam: jamMulai + ' - ' + jamSelesai,
+        ruangan: ruangan,
         kegiatan: document.getElementById('kegiatan').value,
         bidang: document.getElementById('bidang').value,
         pj: document.getElementById('pj').value,
@@ -418,12 +439,9 @@ function initTheme() {
 
 /* HANYA ADMIN BISA DOWNLOAD */
 function downloadRekapan() {
+    // PROTEKSI LOGIN/ROLE
     if (currentRole !== 'admin') {
-        return Swal.fire(
-            'Akses ditolak',
-            'Hanya admin yang dapat mengunduh rekap.',
-            'error'
-        );
+        return Swal.fire('Akses Ditolak', 'Hanya admin yang dapat mengunduh rekap.', 'error');
     }
 
     if (allBookings.length === 0) {
@@ -433,11 +451,7 @@ function downloadRekapan() {
     const currentViewDate = calendar.getDate();
     const currentMonth = currentViewDate.getMonth();
     const currentYear = currentViewDate.getFullYear();
-
-    const monthNames = [
-        "Januari","Februari","Maret","April","Mei","Juni",
-        "Juli","Agustus","September","Oktober","November","Desember"
-    ];
+    const monthNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
     const filteredData = allBookings.filter(b => {
         const d = new Date(b.tanggal);
@@ -445,11 +459,7 @@ function downloadRekapan() {
     }).sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
 
     if (filteredData.length === 0) {
-        return Swal.fire(
-            'Info',
-            `Tidak ada booking pada bulan ${monthNames[currentMonth]} ${currentYear}`,
-            'info'
-        );
+        return Swal.fire('Info', `Tidak ada booking pada bulan ${monthNames[currentMonth]} ${currentYear}`, 'info');
     }
 
     const dataExcel = filteredData.map((b, index) => ({
@@ -465,20 +475,11 @@ function downloadRekapan() {
 
     const worksheet = XLSX.utils.json_to_sheet(dataExcel);
     const workbook = XLSX.utils.book_new();
-
     XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Booking");
-
     const fileName = `REKAP_BOOKING_${monthNames[currentMonth].toUpperCase()}_${currentYear}.xlsx`;
-
     XLSX.writeFile(workbook, fileName);
 
-    Swal.fire({
-        title: 'Berhasil!',
-        text: `Rekapan bulan ${monthNames[currentMonth]} telah diunduh.`,
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
-    });
+    Swal.fire('Berhasil!', `Rekapan bulan ${monthNames[currentMonth]} telah diunduh.`, 'success');
 }
 </script>
 
