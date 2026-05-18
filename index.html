@@ -97,7 +97,6 @@
 <body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-gray-100">
 
 <div id="appContent">
-    <!-- Navigasi -->
     <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-50 border-b-4 border-yellow-500">
         <div class="container mx-auto px-6 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -118,14 +117,12 @@
         </div>
     </nav>
 
-    <!-- Header -->
     <header class="bg-jateng text-white py-16 px-6 text-center relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-blue-500/20"></div>
         <h2 class="text-3xl md:text-4xl font-black uppercase mb-2 tracking-tighter relative z-10">Monitoring & Reservasi</h2>
         <p class="opacity-80 text-sm font-light relative z-10">Sistem Informasi Penggunaan Ruang Rapat</p>
     </header>
 
-    <!-- Form Reservasi - Hanya untuk User -->
     <section id="userFormSection" class="container mx-auto px-6 -mt-10 hidden mb-12 relative z-50">
         <div class="max-w-5xl mx-auto bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800/50 dark:to-slate-900/50 p-5 border-b dark:border-slate-700">
@@ -137,7 +134,6 @@
                 </h3>
             </div>
             <form id="bookingForm" onsubmit="simpanKeFirebase(event)" class="grid grid-cols-1 lg:grid-cols-3">
-                <!-- Kolom 1: Kalender -->
                 <div class="p-6 lg:border-r border-gray-100 dark:border-slate-700">
                     <label class="text-[10px] font-black text-gray-400 uppercase mb-4 block">1. Klik Tanggal</label>
                     <div class="bg-gray-50 dark:bg-slate-900 p-4 rounded-2xl border border-gray-200 dark:border-slate-700">
@@ -158,7 +154,6 @@
                     </div>
                 </div>
                 
-                <!-- Kolom 2: Form -->
                 <div class="lg:col-span-2 p-6 space-y-4">
                     <label class="text-[10px] font-black text-gray-400 uppercase block">2. Detail Kegiatan</label>
                     <input type="text" id="kegiatan" placeholder="Nama Kegiatan *" required 
@@ -225,7 +220,6 @@
         </div>
     </section>
 
-    <!-- Kalender Utama -->
     <section class="container mx-auto px-6 py-12">
         <div class="flex flex-col lg:flex-row justify-between items-end mb-8 gap-4">
             <div>
@@ -233,11 +227,9 @@
                 <p class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">Visualisasi Penggunaan Ruangan <span id="totalBookings" class="text-xs bg-blue-100 dark:bg-blue-900/50 px-2 py-1 rounded-full ml-2">0</span></p>
             </div>
             <div class="flex gap-2 w-full lg:w-auto flex-wrap">
-                <!-- Tombol Hapus Semua - ADMIN ONLY -->
                 <button id="deleteAllBtn" onclick="hapusSemuaData()" class="admin-only text-[10px] font-black px-6 py-3 delete-all-btn shadow-lg rounded-xl uppercase hover:shadow-xl transition-all duration-200 active:scale-95 transform">
                     <i class="fas fa-trash-alt mr-2"></i>Hapus Semua
                 </button>
-                <!-- Tombol Unduh Rekap - ADMIN ONLY -->
                 <button id="downloadBtn" onclick="downloadRekapan()" class="admin-only text-[10px] font-black px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl rounded-xl border-b-4 border-green-700 uppercase hover:from-green-600 hover:to-green-700 transition-all duration-200 active:scale-95 transform">
                     <i class="fas fa-file-excel mr-2"></i> Unduh Rekap
                 </button>
@@ -281,7 +273,6 @@ let tempTime = {
     jamSelesai: { H:'10', M:'00' }
 };
 
-// Inisialisasi aplikasi
 window.onload = async () => {
     await detectRole();
     initTheme();
@@ -293,17 +284,13 @@ window.onload = async () => {
     await tarikDataFirebase();
 };
 
-// Deteksi Role dari URL Parameter
 async function detectRole() {
     const params = new URLSearchParams(window.location.search);
     const role = params.get('role');
     
     if (role === 'adalahadmin') {
         currentRole = 'admin';
-        // Tampilkan tombol admin only
-        document.querySelectorAll('.admin-only').forEach(btn => {
-            btn.classList.remove('admin-only');
-        });
+        document.querySelectorAll('.admin-only').forEach(btn => btn.classList.remove('admin-only'));
         document.getElementById('roleLabel').innerHTML = '<i class="fas fa-shield-alt mr-1"></i>ADMIN';
         document.getElementById('roleLabel').className = 'text-[10px] font-black bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-4 py-2 rounded-full border border-red-100 dark:border-red-800 uppercase italic shadow-sm';
     } else if (role === 'adalahuser') {
@@ -311,611 +298,222 @@ async function detectRole() {
         document.getElementById('userFormSection').classList.remove('hidden');
         document.getElementById('roleLabel').innerHTML = '<i class="fas fa-user mr-1"></i>USER';
         document.getElementById('roleLabel').className = 'text-[10px] font-black bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-full border border-green-100 dark:border-green-800 uppercase italic shadow-sm';
-    } else {
-        document.getElementById('roleLabel').innerHTML = '<i class="fas fa-eye mr-1"></i>GUEST';
-        document.getElementById('roleLabel').className = 'text-[10px] font-black bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-700 uppercase italic shadow-sm';
-    }
-    
-    document.getElementById('roleLabel').title = `Akses: ${currentRole.toUpperCase()}`;
-}
-
-// *** FITUR HAPUS SEMUA DATA (ADMIN ONLY) ***
-window.hapusSemuaData = async function() {
-    if (currentRole !== 'admin') {
-        Swal.fire('Akses Ditolak', 'Fitur ini hanya untuk admin!', 'warning');
-        return;
-    }
-    
-    if (allBookings.length === 0) {
-        Swal.fire('Info', 'Tidak ada data untuk dihapus.', 'info');
-        return;
-    }
-    
-    const { isConfirmed } = await Swal.fire({
-        title: '⚠️ HAPUS SEMUA DATA?',
-        html: `
-            <div class="text-center space-y-4 p-6">
-                <div class="text-4xl text-red-500 mb-4">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="space-y-2">
-                    <p class="font-bold text-lg text-gray-800 dark:text-gray-200">Anda akan menghapus <strong>${allBookings.length}</strong> pemesanan</p>
-                    <p class="text-sm text-red-600 dark:text-red-400">Semua data akan hilang PERMANEN!</p>
-                    <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-3 mt-3">
-                        <p class="text-xs font-mono bg-white dark:bg-slate-800 px-2 py-1 rounded text-red-700 dark:text-red-300">
-                            Total: <strong>${allBookings.length} booking</strong>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: '<i class="fas fa-trash mr-2"></i>YA, HAPUS SEMUA!',
-        cancelButtonText: 'Batal',
-        reverseButtons: true,
-        customClass: {
-            confirmButton: 'delete-all-btn font-black text-sm py-3 px-6',
-            cancelButton: 'font-black text-sm py-3 px-6'
-        },
-        buttonsStyling: false,
-        heightAuto: false
-    });
-    
-    if (isConfirmed) {
-        const deletePromises = allBookings.map(booking => 
-            db.ref(`bookings/${booking.firebaseId || booking.id}`).remove()
-        );
-        
-        try {
-            await Promise.all(deletePromises);
-            Swal.fire({
-                icon: 'success',
-                title: '✅ SEMUA DATA TERHAPUS!',
-                html: `
-                    <div class="text-center">
-                        <div class="text-2xl font-black text-green-600 mb-2">✓</div>
-                        <p class="font-bold">${allBookings.length} pemesanan berhasil dihapus</p>
-                        <p class="text-sm text-gray-600 mt-2">Database telah bersih</p>
-                    </div>
-                `,
-                timer: 3000,
-                showConfirmButton: false
-            });
-        } catch (error) {
-            console.error('Error deleting all:', error);
-            Swal.fire('Error', 'Gagal menghapus beberapa data.', 'error');
-        }
-    }
-};
-
-// Tarik data dari Firebase secara real-time
-async function tarikDataFirebase() {
-    return new Promise((resolve) => {
-        db.ref('bookings').on('value', (snap) => {
-            allBookings = [];
-            snap.forEach(child => {
-                const booking = child.val();
-                booking.firebaseId = child.key;
-                allBookings.push(booking);
-            });
-            
-            // Update total bookings display
-            document.getElementById('totalBookings').textContent = allBookings.length;
-            
-            renderCalendar();
-            if (currentRole === 'user') {
-                checkConflict();
-                initFormCalendar();
-            }
-            document.getElementById('loader').style.display = 'none';
-            resolve();
-        });
-    });
-}
-
-// Render kalender utama FullCalendar
-function renderCalendar() {
-    const calendarEl = document.getElementById('calendarMain');
-    const filter = document.getElementById('filterRuangan').value;
-    const data = (filter === 'Semua') ? allBookings : allBookings.filter(b => b.ruangan === filter);
-    
-    const events = data.map(b => ({
-        id: b.firebaseId || b.id,
-        title: `[${b.ruangan}] ${b.kegiatan.substring(0, 20)}${b.kegiatan.length > 20 ? '...' : ''}`,
-        start: b.tanggal,
-        backgroundColor: getStatusColor(b.status),
-        borderColor: getStatusColor(b.status),
-        textColor: 'white',
-        extendedProps: { ...b }
-    }));
-    
-    if (calendar) calendar.destroy();
-    
-    calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'id',
-        height: 'auto',
-        events: events,
-        headerToolbar: { 
-            left: 'prev,next today', 
-            center: 'title', 
-            right: 'dayGridMonth,timeGridWeek,timeGridDay' 
-        },
-        eventClick: (info) => showBookingDetail(info.event.extendedProps),
-        eventDidMount: function(info) {
-            info.el.style.fontSize = '10px';
-            info.el.style.fontWeight = '800';
-            info.el.style.borderRadius = '6px';
-        }
-    });
-    calendar.render();
-}
-
-function getStatusColor(status) {
-    switch(status) {
-        case 'Approved': return '#22c55e';
-        case 'Rejected': return '#ef4444';
-        case 'Pending': return '#facc15';
-        default: return '#6b7280';
     }
 }
 
-// *** SISTEM DETEKSI KONFLIK ***
-function checkConflict() {
-    const tgl = document.getElementById('tanggal').value;
-    const ruangan = document.getElementById('ruangan').value;
-    const jamMulai = document.getElementById('jamMulai').value;
-    const jamSelesai = document.getElementById('jamSelesai').value;
-    
-    if (!tgl || !ruangan || !jamMulai || !jamSelesai) {
-        updateSubmitButton(false, 'Lengkapi semua field!');
-        clearConflict();
-        return;
-    }
-
-    const startTime = timeToMinutes(jamMulai);
-    const endTime = timeToMinutes(jamSelesai);
-    if (startTime >= endTime) {
-        updateSubmitButton(false, 'Jam selesai harus lebih besar dari jam mulai!');
-        showConflictWarning('Jam tidak valid!');
-        return;
-    }
-    
-    const conflicts = allBookings.filter(booking => {
-        if (booking.tanggal !== tgl || booking.ruangan !== ruangan || 
-            (booking.status !== 'Approved' && booking.status !== 'Pending')) {
-            return false;
-        }
-        
-        const [bookingStart, bookingEnd] = booking.jam.split(' - ');
-        const bookingStartMin = timeToMinutes(bookingStart);
-        const bookingEndMin = timeToMinutes(bookingEnd);
-        
-        return (startTime < bookingEndMin && endTime > bookingStartMin);
-    });
-
-    if (conflicts.length > 0) {
-        showConflict(conflicts);
-    } else {
-        clearConflict();
-        updateSubmitButton(true, 'Siap diajukan!');
-    }
-}
-
-function timeToMinutes(timeStr) {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
-}
-
-function showConflict(conflicts) {
-    document.querySelectorAll('.conflict-check').forEach(el => {
-        el.classList.add('conflict-warning');
-    });
-    
-    document.getElementById('conflictIndicator').classList.remove('hidden');
-    updateSubmitButton(false, 'TABRAKAN DITEMUKAN!');
-    
-    const conflictList = conflicts.slice(0, 5).map(c => 
-        `<li class="text-red-700 dark:text-red-300 font-bold text-sm py-1 border-b border-red-100 dark:border-red-900 last:border-b-0">${c.jam} - ${c.kegiatan} (${c.pj})</li>`
-    ).join('');
-    
-    Swal.fire({
-        icon: 'warning',
-        title: '⚠️ Tabrakan Pemesanan Ditemukan!',
-        html: `
-            <div class="text-left text-sm space-y-3">
-                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
-                    <p><strong class="text-red-800 dark:text-red-200">Ruangan:</strong> <span class="font-bold">${document.getElementById('ruangan').value}</span></p>
-                    <p><strong class="text-red-800 dark:text-red-200">Tanggal:</strong> <span class="font-bold">${new Date(document.getElementById('tanggal').value).toLocaleDateString('id-ID', {dateStyle: 'full'})}</span></p>
-                    <p><strong class="text-red-800 dark:text-red-200">Waktu yang dipilih:</strong> <span class="font-bold">${document.getElementById('jamMulai').value} - ${document.getElementById('jamSelesai').value}</span></p>
-                </div>
-                <div class="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-red-50 dark:from-yellow-900/20 dark:to-red-900/20 rounded-xl border">
-                    <p class="font-bold text-red-800 dark:text-red-200 mb-3 flex items-center">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>Pemesanan yang bertabrakan:
-                    </p>
-                    <ul class="max-h-40 overflow-y-auto space-y-1">${conflictList}</ul>
-                    ${conflicts.length > 5 ? `<p class="text-xs text-red-600 dark:text-red-400 mt-2">... dan ${conflicts.length - 5} pemesanan lainnya</p>` : ''}
-                </div>
-            </div>
-        `,
-        confirmButtonText: 'OK, Ubah Waktu',
-        confirmButtonColor: '#ef4444',
-        allowOutsideClick: true,
-        customClass: {
-            popup: 'animate__animated animate__shakeX'
-        }
-    });
-}
-
-function clearConflict() {
-    document.querySelectorAll('.conflict-check').forEach(el => {
-        el.classList.remove('conflict-warning');
-    });
-    document.getElementById('conflictIndicator').classList.add('hidden');
-}
-
-function updateSubmitButton(enabled, message = '') {
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = !enabled;
-    
-    if (enabled) {
-        btn.className = 'w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-black py-4 rounded-xl uppercase text-xs tracking-widest shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 active:scale-95 transform';
-        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Ajukan Reservasi';
-    } else {
-        btn.className = 'w-full bg-gray-400 dark:bg-slate-700 text-white font-black py-4 rounded-xl uppercase text-xs tracking-widest shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed';
-        if (message) btn.innerHTML = `<i class="fas fa-ban mr-2"></i>${message}`;
-    }
-}
-
-function showConflictWarning(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Jam Tidak Valid!',
-        text: message,
-        timer: 2000
-    });
-}
-
-// Simpan ke Firebase dengan validasi ganda
-async function simpanKeFirebase(e) {
-    e.preventDefault();
-    
-    const formData = {
-        tgl: document.getElementById('tanggal').value,
-        ruangan: document.getElementById('ruangan').value,
-        jamMulai: document.getElementById('jamMulai').value,
-        jamSelesai: document.getElementById('jamSelesai').value,
-        kegiatan: document.getElementById('kegiatan').value.trim(),
-        bidang: document.getElementById('bidang').value,
-        pj: document.getElementById('pj').value.trim()
-    };
-    
-    for (let key in formData) {
-        if (!formData[key]) {
-            Swal.fire('Error', `Field ${key} wajib diisi!`, 'warning');
-            return;
-        }
-    }
-    
-    await tarikDataFirebase();
-    checkConflict();
-    
-    if (document.getElementById('submitBtn').disabled) {
-        Swal.fire('Tabrakan Terdeteksi!', 'Pilih waktu dan ruangan lain.', 'error');
-        return;
-    }
-    
-    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-    
-    const bookingData = {
-        id: id,
-        firebaseId: id,
-        tanggal: formData.tgl,
-        jam: `${formData.jamMulai} - ${formData.jamSelesai}`,
-        ruangan: formData.ruangan,
-        kegiatan: formData.kegiatan,
-        bidang: formData.bidang,
-        pj: formData.pj,
-        status: 'Pending',
-        createdAt: Date.now(),
-        createdBy: currentRole
-    };
-    
-    try {
-        await db.ref('bookings/' + id).set(bookingData);
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil Diajukan!',
-            html: `
-                <div class="text-center">
-                    <div class="text-lg font-bold text-green-700 mb-2">${formData.kegiatan}</div>
-                    <div class="text-sm text-gray-600 mb-3">${formData.ruangan} - ${formData.jamMulai} - ${formData.jamSelesai}</div>
-                    <div class="text-xs bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-bold">Status: Pending</div>
-                </div>
-            `,
-            timer: 3000,
-            showConfirmButton: false
-        });
-        
-        document.getElementById('bookingForm').reset();
-        selectedDateStr = "";
-        initFormCalendar();
-        clearConflict();
-        updateSubmitButton(false);
-        
-    } catch (error) {
-        console.error('Error saving:', error);
-        Swal.fire('Error', 'Gagal menyimpan data. Coba lagi.', 'error');
-    }
-}
-
-// *** KALENDER FORM USER - TANPA WARNA GANGGU ***
+// *** MODIFIKASI: Menambahkan Label Hari di Kalender Form ***
 function initFormCalendar() {
     const grid = document.getElementById('calendarGrid');
-    const monthLabel = document.getElementById('calendarMonth');
-    const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-    
+    const monthYear = document.getElementById('calendarMonth');
     grid.innerHTML = '';
-    const year = currentFormDate.getFullYear();
-    const month = currentFormDate.getMonth();
-    monthLabel.innerText = `${months[month]} ${year}`;
     
-    const firstDay = new Date(year, month, 1).getDay();
-    const days = new Date(year, month + 1, 0).getDate();
-    let offset = firstDay === 0 ? 6 : firstDay - 1;
-    
-    ['M','S','S','R','K','J','S'].forEach(h => { 
-        grid.innerHTML += `<div class="text-[8px] font-black text-gray-400 dark:text-gray-500 text-center py-1 uppercase">${h}</div>`; 
+    const viewDate = new Date(currentFormDate.getFullYear(), currentFormDate.getMonth(), 1);
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    monthYear.innerText = `${months[viewDate.getMonth()]} ${viewDate.getFullYear()}`;
+
+    // Render Label Hari
+    const labels = ['M', 'S', 'S', 'R', 'K', 'J', 'S'];
+    labels.forEach(label => {
+        const el = document.createElement('div');
+        el.className = "text-[9px] font-black text-gray-400 text-center mb-1";
+        el.innerText = label;
+        grid.appendChild(el);
     });
-    
-    for (let i = 0; i < offset; i++) { 
-        grid.innerHTML += `<div class="calendar-day h-8"></div>`; 
-    }
-    
-    for (let d = 1; d <= days; d++) {
-        const ds = `${year}-${String(month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const isSelected = selectedDateStr === ds;
-        
-        grid.innerHTML += `
-            <div onclick="selectDate('${ds}')" 
-                 class="calendar-day h-9 ${isSelected ? 'selected' : ''} hover:scale-110 transition-all duration-200 shadow-sm ${isSelected ? 'shadow-blue-500/50' : 'hover:shadow-md'}">
-                ${d}
-            </div>
-        `;
+
+    const firstDay = viewDate.getDay();
+    const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayEl = document.createElement('div');
+        dayEl.className = `calendar-day text-gray-700 dark:text-gray-300 font-bold hover:bg-blue-100 dark:hover:bg-blue-900/30 ${dateStr === selectedDateStr ? 'selected' : ''}`;
+        dayEl.innerText = d;
+        dayEl.onclick = () => selectDate(dateStr);
+        grid.appendChild(dayEl);
     }
 }
 
 function selectDate(date) {
     selectedDateStr = date;
     document.getElementById('tanggal').value = date;
-    document.getElementById('selectedDateDisplay').innerText = new Date(date).toLocaleDateString('id-ID', { dateStyle: 'full' });
+    const d = new Date(date);
+    document.getElementById('selectedDateDisplay').innerText = d.toLocaleDateString('id-ID', { dateStyle: 'full' });
+    initFormCalendar();
     checkConflict();
 }
 
-function prevMonth() { 
-    currentFormDate.setMonth(currentFormDate.getMonth() - 1); 
-    initFormCalendar(); 
-}
+function prevMonth() { currentFormDate.setMonth(currentFormDate.getMonth() - 1); initFormCalendar(); }
+function nextMonth() { currentFormDate.setMonth(currentFormDate.getMonth() + 1); initFormCalendar(); }
 
-function nextMonth() { 
-    currentFormDate.setMonth(currentFormDate.getMonth() + 1); 
-    initFormCalendar(); 
-}
-
-function generateTimeOptions(targetHours, targetMins, inputId) {
-    const hDiv = document.getElementById(targetHours);
-    const mDiv = document.getElementById(targetMins);
-    
-    for (let i = 7; i <= 18; i++) {
+// FUNGSI TIME PICKER
+function generateTimeOptions(hourId, minId, inputId) {
+    const hCol = document.getElementById(hourId);
+    const mCol = document.getElementById(minId);
+    for(let i=7; i<=20; i++) {
         const val = String(i).padStart(2, '0');
-        hDiv.innerHTML += `<div class="time-unit" onclick="setTimePart('${inputId}','H','${val}',this)">${val}</div>`;
+        const el = document.createElement('div');
+        el.className = 'time-unit'; el.innerText = val;
+        el.onclick = () => {
+            tempTime[inputId].H = val;
+            updateTimeInput(inputId);
+            Array.from(hCol.children).forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        };
+        hCol.appendChild(el);
     }
-    
     ['00','15','30','45'].forEach(val => {
-        mDiv.innerHTML += `<div class="time-unit" onclick="setTimePart('${inputId}','M','${val}',this)">${val}</div>`;
+        const el = document.createElement('div');
+        el.className = 'time-unit'; el.innerText = val;
+        el.onclick = () => {
+            tempTime[inputId].M = val;
+            updateTimeInput(inputId);
+            Array.from(mCol.children).forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        };
+        mCol.appendChild(el);
     });
 }
 
-function setTimePart(inputId, type, val, el) {
-    const container = el.parentElement;
-    container.querySelectorAll('.time-unit').forEach(u => u.classList.remove('active'));
-    tempTime[inputId][type] = val;
-    el.classList.add('active');
-    
-    document.getElementById(inputId).value = `${tempTime[inputId].H}:${tempTime[inputId].M}`;
+function updateTimeInput(id) {
+    document.getElementById(id).value = `${tempTime[id].H}:${tempTime[id].M}`;
     checkConflict();
 }
 
 function toggleTimePicker(id) {
     const el = document.getElementById(id);
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    const isVisible = el.style.display === 'block';
+    document.querySelectorAll('.time-picker-overlay').forEach(p => p.style.display = 'none');
+    el.style.display = isVisible ? 'none' : 'block';
 }
 
-function closeTimePicker(id) { 
-    document.getElementById(id).style.display = 'none';
-    checkConflict();
+function closeTimePicker(id) { document.getElementById(id).style.display = 'none'; }
+
+// FIREBASE & CALENDAR LOGIC
+async function tarikDataFirebase() {
+    return new Promise((resolve) => {
+        db.ref('bookings').on('value', (snap) => {
+            allBookings = [];
+            snap.forEach(child => {
+                const b = child.val(); b.firebaseId = child.key;
+                allBookings.push(b);
+            });
+            document.getElementById('totalBookings').textContent = allBookings.length;
+            renderCalendar();
+            if (currentRole === 'user') checkConflict();
+            document.getElementById('loader').style.display = 'none';
+            resolve();
+        });
+    });
 }
 
-// Theme Management
+function renderCalendar() {
+    const calendarEl = document.getElementById('calendarMain');
+    const filter = document.getElementById('filterRuangan').value;
+    const data = (filter === 'Semua') ? allBookings : allBookings.filter(b => b.ruangan === filter);
+    const events = data.map(b => ({
+        id: b.firebaseId,
+        title: `[${b.ruangan}] ${b.kegiatan}`,
+        start: b.tanggal,
+        backgroundColor: getStatusColor(b.status),
+        borderColor: getStatusColor(b.status),
+        extendedProps: { ...b }
+    }));
+    if (calendar) calendar.destroy();
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', locale: 'id', height: 'auto', events: events,
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+        eventClick: (info) => showBookingDetail(info.event.extendedProps)
+    });
+    calendar.render();
+}
+
+function getStatusColor(s) {
+    if(s === 'Approved') return '#22c55e';
+    if(s === 'Rejected') return '#ef4444';
+    return '#facc15';
+}
+
+function checkConflict() {
+    const tgl = document.getElementById('tanggal').value;
+    const rgn = document.getElementById('ruangan').value;
+    const m = document.getElementById('jamMulai').value;
+    const s = document.getElementById('jamSelesai').value;
+    
+    if(!tgl || !rgn || !m || !s) { updateSubmitButton(false); clearConflict(); return; }
+    
+    const startM = timeToMinutes(m); const endM = timeToMinutes(s);
+    if(startM >= endM) { updateSubmitButton(false, 'Jam Tidak Valid'); return; }
+
+    const conflicts = allBookings.filter(b => {
+        if(b.tanggal !== tgl || b.ruangan !== rgn || b.status === 'Rejected') return false;
+        const [bS, bE] = b.jam.split(' - ');
+        return (startM < timeToMinutes(bE) && endM > timeToMinutes(bS));
+    });
+
+    if(conflicts.length > 0) { 
+        updateSubmitButton(false, 'TABRAKAN!'); 
+        document.getElementById('conflictIndicator').classList.remove('hidden');
+    } else { 
+        updateSubmitButton(true); 
+        clearConflict(); 
+    }
+}
+
+function timeToMinutes(t) { const [h, m] = t.split(':').map(Number); return h*60+m; }
+function clearConflict() { document.getElementById('conflictIndicator').classList.add('hidden'); }
+function updateSubmitButton(e, msg) {
+    const b = document.getElementById('submitBtn'); b.disabled = !e;
+    b.innerHTML = e ? '<i class="fas fa-check mr-2"></i>Ajukan Reservasi' : `<i class="fas fa-ban mr-2"></i>${msg || 'Lengkapi Form'}`;
+}
+
+async function simpanKeFirebase(e) {
+    e.preventDefault();
+    const data = {
+        tanggal: document.getElementById('tanggal').value,
+        ruangan: document.getElementById('ruangan').value,
+        jam: `${document.getElementById('jamMulai').value} - ${document.getElementById('jamSelesai').value}`,
+        kegiatan: document.getElementById('kegiatan').value,
+        bidang: document.getElementById('bidang').value,
+        pj: document.getElementById('pj').value,
+        status: 'Pending',
+        timestamp: Date.now()
+    };
+    try {
+        await db.ref('bookings').push(data);
+        Swal.fire('Berhasil', 'Reservasi diajukan!', 'success');
+        e.target.reset(); selectedDateStr = ""; initFormCalendar();
+    } catch(err) { Swal.fire('Error', 'Gagal menyimpan', 'error'); }
+}
+
 function toggleDarkMode() {
-    const isDark = document.documentElement.classList.toggle('dark');
-    const icon = document.getElementById('themeIcon');
-    icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    document.documentElement.classList.toggle('dark');
+    const isDark = document.documentElement.classList.contains('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = isDark ? 'fas fa-sun text-sm' : 'fas fa-moon text-sm';
 }
 
 function initTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
-    if (isDark) {
+    if (localStorage.theme === 'dark') {
         document.documentElement.classList.add('dark');
-        document.getElementById('themeIcon').className = 'fas fa-sun';
+        document.getElementById('themeIcon').className = 'fas fa-sun text-sm';
     }
 }
 
-// *** DOWNLOAD REKAP EXCEL - ADMIN ONLY ***
-window.downloadRekapan = function() {
-    if (currentRole !== 'admin') {
-        Swal.fire('Akses Ditolak', 'Fitur ini hanya untuk admin!', 'warning');
-        return;
-    }
-    
-    const currentViewDate = calendar.getDate();
-    const currentMonth = currentViewDate.getMonth();
-    const currentYear = currentViewDate.getFullYear();
-    const monthNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-    
-    const filteredData = allBookings
-        .filter(b => {
-            const d = new Date(b.tanggal);
-            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-        })
-        .sort((a, b) => new Date(a.tanggal + ' ' + a.jam.split(' - ')[0]) - new Date(b.tanggal + ' ' + b.jam.split(' - ')[0]));
-
-    const dataExcel = filteredData.map((b, index) => ({
-        "No": index + 1,
-        "Tanggal": new Date(b.tanggal).toLocaleDateString('id-ID', {dateStyle: 'full'}),
-        "Waktu": b.jam,
-        "Ruangan": b.ruangan,
-        "Kegiatan": b.kegiatan,
-        "Bidang": b.bidang,
-        "PIC": b.pj,
-        "Status": b.status,
-        "Dibuat": new Date(b.createdAt).toLocaleDateString('id-ID')
-    }));
-
-    if (dataExcel.length === 0) {
-        Swal.fire('Info', 'Tidak ada data untuk bulan ini.', 'info');
-        return;
-    }
-
-    const worksheet = XLSX.utils.json_to_sheet(dataExcel);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap");
-    
-    const filename = `REKAP_${monthNames[currentMonth].toUpperCase()}_${currentYear}.xlsx`;
-    XLSX.writeFile(workbook, filename);
-    
-    Swal.fire('Berhasil!', `Rekap ${monthNames[currentMonth]} ${currentYear} berhasil diunduh (${dataExcel.length} data)`, 'success');
-}
-
-// *** FUNGSI ADMIN: HAPUS MANUAL PER PEMESANAN ***
-window.prosesAdmin = async function(id, status) {
-    if (currentRole !== 'admin') return;
-    
-    const result = await Swal.fire({
-        title: `Ubah Status ke ${status}?`,
-        icon: status === 'Approved' ? 'question' : 'warning',
-        showCancelButton: true,
-        confirmButtonColor: status === 'Approved' ? '#22c55e' : '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: `Ya, ${status}`,
-        cancelButtonText: 'Batal'
-    });
-    
-    if (result.isConfirmed) {
-        await db.ref('bookings/' + id).update({ status: status, updatedAt: Date.now() });
-        Swal.fire('Berhasil!', `Status diubah ke ${status}`, 'success');
-    }
-};
-
-window.hapusAdmin = async function(id) {
-    if (currentRole !== 'admin') return;
-    
-    const result = await Swal.fire({
-        title: 'Hapus Data?',
-        text: "Data akan dihapus permanen dan tidak bisa dikembalikan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Ya, Hapus!',
-        reverseButtons: true
-    });
-    
-    if (result.isConfirmed) {
-        await db.ref('bookings/' + id).remove();
-        Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
-    }
-};
-
-// Detail Booking
-function showBookingDetail(p) {
-    const statusClass = `status-${p.status.toLowerCase()}`;
-    let adminButtons = "";
-    
-    if (currentRole === 'admin') {
-        const disabled = p.status === 'Approved' ? 'disabled' : '';
-        adminButtons = `
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-slate-700">
-                <button onclick="prosesAdmin('${p.firebaseId || p.id}', 'Approved')" 
-                        class="bg-green-600 hover:bg-green-700 ${disabled} text-white text-[11px] font-black py-3 px-4 rounded-xl uppercase transition-all shadow-lg ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl hover:scale-105'}">
-                    <i class="fas fa-check mr-1"></i>Terima
-                </button>
-                <button onclick="prosesAdmin('${p.firebaseId || p.id}', 'Rejected')" 
-                        class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-black py-3 px-4 rounded-xl uppercase transition-all shadow-lg hover:shadow-xl hover:scale-105">
-                    <i class="fas fa-times mr-1"></i>Tolak
-                </button>
-                <button onclick="hapusAdmin('${p.firebaseId || p.id}')" 
-                        class="bg-gradient-to-r from-slate-600 to-slate-800 hover:from-slate-700 hover:to-slate-900 text-white text-[11px] font-black py-3 px-4 rounded-xl uppercase transition-all shadow-lg hover:shadow-xl hover:scale-105">
-                    <i class="fas fa-trash mr-1"></i>Hapus
-                </button>
-            </div>
-        `;
-    }
-
+function showBookingDetail(b) {
     Swal.fire({
-        title: `
-            <div class="flex items-center space-x-3">
-                <div class="p-2 rounded-xl ${statusClass === 'status-approved' ? 'bg-green-100 text-green-800' : statusClass === 'status-rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">
-                    <i class="fas ${statusClass === 'status-approved' ? 'fa-check-circle' : statusClass === 'status-rejected' ? 'fa-times-circle' : 'fa-clock'}"></i>
-                </div>
-                <span class="font-black text-lg uppercase">${p.kegiatan}</span>
-            </div>
-        `,
-        html: `
-            <div class="text-left text-[11px] space-y-3 p-4 bg-gray-50 dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <p><strong><i class="fas fa-door-open text-blue-500 mr-2"></i>Ruangan:</strong> <span class="font-semibold">${p.ruangan}</span></p>
-                    <p><strong><i class="fas fa-calendar text-blue-500 mr-2"></i>Tanggal:</strong> <span class="font-semibold">${new Date(p.tanggal).toLocaleDateString('id-ID', {dateStyle: 'full'})}</span></p>
-                    <p><strong><i class="fas fa-clock text-blue-500 mr-2"></i>Waktu:</strong> <span class="font-semibold">${p.jam}</span></p>
-                    <p><strong><i class="fas fa-building text-blue-500 mr-2"></i>Bidang:</strong> <span class="font-semibold">${p.bidang}</span></p>
-                    <p><strong><i class="fas fa-user text-blue-500 mr-2"></i>PIC:</strong> <span class="font-semibold">${p.pj}</span></p>
-                    <p><strong><i class="fas fa-info-circle text-blue-500 mr-2"></i>Status:</strong> 
-                        <span class="status-badge ${statusClass} ml-2">${p.status}</span>
-                    </p>
-                </div>
-            </div>
-            ${adminButtons}
-        `,
-        showConfirmButton: false,
-        showCloseButton: true,
-        width: '600px',
-        background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
-        color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#1e293b'
+        title: b.kegiatan,
+        html: `<div class="text-left text-sm space-y-2">
+            <p><b>Ruang:</b> ${b.ruangan}</p>
+            <p><b>Waktu:</b> ${b.jam}</p>
+            <p><b>Bidang:</b> ${b.bidang}</p>
+            <p><b>PIC:</b> ${b.pj}</p>
+            <p><b>Status:</b> ${b.status}</p>
+        </div>`,
+        icon: 'info'
     });
 }
-
-// Prevent double submission
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('bookingForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn.disabled) {
-                e.preventDefault();
-                return false;
-            }
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengirim...';
-        });
-    }
-});
 </script>
-
 </body>
 </html>
