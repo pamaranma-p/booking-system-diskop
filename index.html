@@ -23,14 +23,12 @@
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
         .bg-jateng { background-color: #1e3a8a; }
         
-        /* Kalender Utama */
         .fc { background: white; border-radius: 2rem; padding: 20px; border: none !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         .dark .fc { background: #1e293b; color: white; border: 1px solid #334155 !important; }
         .fc-toolbar-title { font-weight: 900 !important; text-transform: uppercase; font-size: 1.1rem !important; color: #1e3a8a; }
         .dark .fc-toolbar-title { color: #facc15; }
         .fc-button-primary { background-color: #1e3a8a !important; border: none !important; font-size: 11px !important; font-weight: 800 !important; text-transform: uppercase; border-radius: 10px !important; }
 
-        /* Form Entry Reservasi (Gaya yang Anda Sukai) */
         .calendar-day { transition: all 0.2s; cursor: pointer; height: 35px; width: 35px; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 10px; margin: auto; font-weight: 700; }
         .calendar-day.selected { background-color: #1e3a8a !important; color: white !important; box-shadow: 0 4px 10px rgba(30, 58, 138, 0.3); }
         .dark .calendar-day.selected { background-color: #facc15 !important; color: #1e3a8a !important; }
@@ -169,7 +167,6 @@
     </footer>
 
     <script>
-        // FIREBASE CONFIG
         const firebaseConfig = { databaseURL: "https://databasebooking-cfa37-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -184,6 +181,7 @@
         window.onload = async () => {
             initTheme();
             const role = new URLSearchParams(window.location.search).get('role');
+
             if(role === 'adalahadmin') {
                 currentRole = 'admin';
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
@@ -195,10 +193,10 @@
                 initMiniCalendar();
                 initTimePickers();
             }
+
             tarikData();
         };
 
-        // MINI CALENDAR (S, S, R, K, J, S, M)
         function initMiniCalendar() {
             const grid = document.getElementById('miniCalendarGrid');
             const monthLabel = document.getElementById('calendarMonth');
@@ -237,25 +235,48 @@
             }
         }
 
-        function changeMonth(offset) { viewDate.setMonth(viewDate.getMonth() + offset); initMiniCalendar(); }
+        function changeMonth(offset) {
+            viewDate.setMonth(viewDate.getMonth() + offset);
+            initMiniCalendar();
+        }
 
-        // TIME PICKERS
         function initTimePickers() {
             const setup = (hId, mId, key) => {
                 const hc = document.getElementById(hId);
                 const mc = document.getElementById(mId);
+
                 for(let i=7; i<=20; i++) {
                     const val = String(i).padStart(2,'0');
-                    const el = document.createElement('div'); el.className = 'time-unit'; el.innerText = val;
-                    el.onclick = () => { timeStore[key].h = val; updateTimeInputs(); Array.from(hc.children).forEach(c=>c.classList.remove('active')); el.classList.add('active'); };
+                    const el = document.createElement('div');
+                    el.className = 'time-unit';
+                    el.innerText = val;
+
+                    el.onclick = () => {
+                        timeStore[key].h = val;
+                        updateTimeInputs();
+                        Array.from(hc.children).forEach(c=>c.classList.remove('active'));
+                        el.classList.add('active');
+                    };
+
                     hc.appendChild(el);
                 }
+
                 ['00','15','30','45'].forEach(val => {
-                    const el = document.createElement('div'); el.className = 'time-unit'; el.innerText = val;
-                    el.onclick = () => { timeStore[key].m = val; updateTimeInputs(); Array.from(mc.children).forEach(c=>c.classList.remove('active')); el.classList.add('active'); };
+                    const el = document.createElement('div');
+                    el.className = 'time-unit';
+                    el.innerText = val;
+
+                    el.onclick = () => {
+                        timeStore[key].m = val;
+                        updateTimeInputs();
+                        Array.from(mc.children).forEach(c=>c.classList.remove('active'));
+                        el.classList.add('active');
+                    };
+
                     mc.appendChild(el);
                 });
             };
+
             setup('h-mulai','m-mulai','mulai');
             setup('h-selesai','m-selesai','selesai');
         }
@@ -270,17 +291,29 @@
             const target = document.getElementById(id);
             const isVisible = target.style.display === 'block';
             closeAllPickers();
+
             if(!isVisible) target.style.display = 'block';
         }
-        function closeAllPickers() { document.querySelectorAll('.time-picker-overlay').forEach(p=>p.style.display='none'); }
 
-        // LOGIC & FIREBASE
+        function closeAllPickers() {
+            document.querySelectorAll('.time-picker-overlay').forEach(p=>p.style.display='none');
+        }
+
         function tarikData() {
             db.ref('bookings').on('value', (snap) => {
                 allBookings = [];
-                snap.forEach(c => { allBookings.push({id: c.key, ...c.val()}); });
+
+                snap.forEach(c => {
+                    allBookings.push({
+                        id: c.key,
+                        ...c.val()
+                    });
+                });
+
                 document.getElementById('totalBookings').innerText = allBookings.length;
+
                 renderCalendar();
+
                 document.getElementById('loader').style.display = 'none';
             });
         }
@@ -293,81 +326,205 @@
             const btn = document.getElementById('submitBtn');
             const info = document.getElementById('conflictIndicator');
 
-            if(!tgl || !rgn || !m || !s) { updateBtn(false, "Lengkapi Data"); return; }
+            if(!tgl || !rgn || !m || !s) {
+                updateBtn(false, "Lengkapi Data");
+                return;
+            }
             
-            const startMin = toMin(m); const endMin = toMin(s);
-            if(startMin >= endMin) { updateBtn(false, "Waktu Salah"); return; }
+            const startMin = toMin(m);
+            const endMin = toMin(s);
+
+            if(startMin >= endMin) {
+                updateBtn(false, "Waktu Salah");
+                return;
+            }
 
             const isConflict = allBookings.some(b => {
                 if(b.tanggal !== tgl || b.ruangan !== rgn) return false;
+
                 const [bS, bE] = b.jam.split(' - ');
+
                 return (startMin < toMin(bE) && endMin > toMin(bS));
             });
 
-            if(isConflict) { updateBtn(false, "Tabrakan!"); info.classList.remove('hidden'); }
-            else { updateBtn(true, "Ajukan Reservasi"); info.classList.add('hidden'); }
+            if(isConflict) {
+                updateBtn(false, "Tabrakan!");
+                info.classList.remove('hidden');
+            } else {
+                updateBtn(true, "Ajukan Reservasi");
+                info.classList.add('hidden');
+            }
         }
 
-        function toMin(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+        function toMin(t) {
+            const [h,m] = t.split(':').map(Number);
+            return h*60+m;
+        }
+
         function updateBtn(ok, txt) {
             const btn = document.getElementById('submitBtn');
+
             btn.disabled = !ok;
             btn.innerText = txt;
-            btn.className = ok ? "w-full bg-blue-700 text-white font-black py-4 rounded-xl uppercase text-xs shadow-lg" : "w-full bg-gray-300 text-white font-black py-4 rounded-xl uppercase text-xs";
+
+            btn.className = ok
+                ? "w-full bg-blue-700 text-white font-black py-4 rounded-xl uppercase text-xs shadow-lg"
+                : "w-full bg-gray-300 text-white font-black py-4 rounded-xl uppercase text-xs";
         }
 
         async function simpanKeFirebase(e) {
             e.preventDefault();
+
             const data = {
                 tanggal: document.getElementById('tanggal').value,
                 ruangan: document.getElementById('ruangan').value,
                 bidang: document.getElementById('bidang').value,
                 kegiatan: document.getElementById('kegiatan').value.toUpperCase(),
                 jam: `${document.getElementById('jamMulai').value} - ${document.getElementById('jamSelesai').value}`,
-                pj: document.getElementById('pj').value.toUpperCase()
+                pj: document.getElementById('pj').value.toUpperCase(),
+                status: 'PENDING'
             };
+
             await db.ref('bookings').push(data);
+
             Swal.fire('Berhasil', 'Reservasi disimpan!', 'success');
-            e.target.reset(); selectedDateStr = ""; initMiniCalendar();
+
+            e.target.reset();
+
+            selectedDateStr = "";
+
+            initMiniCalendar();
         }
 
         function renderCalendar() {
             const filter = document.getElementById('filterRuangan').value;
-            const data = filter === 'Semua' ? allBookings : allBookings.filter(b => b.ruangan === filter);
-            const events = data.map(b => ({ title: `[${b.ruangan}] ${b.kegiatan}`, start: b.tanggal, color: '#1e3a8a', extendedProps: b }));
+
+            const data = filter === 'Semua'
+                ? allBookings
+                : allBookings.filter(b => b.ruangan === filter);
+
+            const events = data.map(b => {
+
+                let warna = '#eab308';
+
+                if(b.status === 'APPROVED') warna = '#16a34a';
+                if(b.status === 'DITOLAK') warna = '#dc2626';
+
+                return {
+                    title: `[${b.ruangan}] ${b.kegiatan}`,
+                    start: b.tanggal,
+                    color: warna,
+                    extendedProps: b
+                };
+            });
+
             if(calendar) calendar.destroy();
+
             calendar = new FullCalendar.Calendar(document.getElementById('calendarMain'), {
-                initialView:'dayGridMonth', locale:'id', events: events, height:'auto', firstDay: 1,
+                initialView:'dayGridMonth',
+                locale:'id',
+                events: events,
+                height:'auto',
+                firstDay: 1,
+
                 eventClick: (info) => {
+
                     const d = info.event.extendedProps;
+
+                    let statusColor = 'bg-yellow-500';
+
+                    if(d.status === 'APPROVED') statusColor = 'bg-green-600';
+                    if(d.status === 'DITOLAK') statusColor = 'bg-red-600';
+
+                    let adminButtons = '';
+
+                    if(currentRole === 'admin') {
+                        adminButtons = `
+                            <div class="flex gap-2 mt-4">
+                                <button onclick="ubahStatus('${d.id}','APPROVED')" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-xs font-bold">
+                                    APPROVE
+                                </button>
+
+                                <button onclick="ubahStatus('${d.id}','DITOLAK')" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-xs font-bold">
+                                    TOLAK
+                                </button>
+                            </div>
+                        `;
+                    }
+
                     Swal.fire({
                         title: d.kegiatan,
-                        html: `<div class='text-left text-xs'><b>Ruang:</b> ${d.ruangan}<br><b>Waktu:</b> ${d.jam}<br><b>PJ:</b> ${d.pj}</div>`,
-                        showConfirmButton: currentRole === 'admin',
-                        confirmButtonText: 'Hapus'
-                    }).then(r => { if(r.isConfirmed && currentRole === 'admin') db.ref(`bookings/${d.id}`).remove(); });
+                        html: `
+                            <div class='text-left text-xs space-y-2'>
+                                <div><b>Ruang:</b> ${d.ruangan}</div>
+                                <div><b>Waktu:</b> ${d.jam}</div>
+                                <div><b>PJ:</b> ${d.pj}</div>
+
+                                <div class="mt-3">
+                                    <span class="${statusColor} text-white px-3 py-1 rounded-full text-[10px] font-black">
+                                        ${d.status || 'PENDING'}
+                                    </span>
+                                </div>
+
+                                ${adminButtons}
+                            </div>
+                        `,
+                        showConfirmButton: false
+                    });
                 }
             });
+
             calendar.render();
         }
 
+        async function ubahStatus(id, status) {
+
+            await db.ref(`bookings/${id}`).update({
+                status: status
+            });
+
+            Swal.close();
+
+            Swal.fire(
+                'Berhasil',
+                `Status diubah menjadi ${status}`,
+                'success'
+            );
+        }
+
         async function hapusSemua() {
-            const r = await Swal.fire({title:'Reset Data?', text:'Semua jadwal akan hilang!', icon:'warning', showCancelButton:true});
+            const r = await Swal.fire({
+                title:'Reset Data?',
+                text:'Semua jadwal akan hilang!',
+                icon:'warning',
+                showCancelButton:true
+            });
+
             if(r.isConfirmed) db.ref('bookings').remove();
         }
 
         function eksporExcel() {
             const ws = XLSX.utils.json_to_sheet(allBookings);
             const wb = XLSX.utils.book_new();
+
             XLSX.utils.book_append_sheet(wb, ws, "Jadwal");
+
             XLSX.writeFile(wb, "Rekap_Booking.xlsx");
         }
 
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
-            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+
+            localStorage.theme =
+                document.documentElement.classList.contains('dark')
+                ? 'dark'
+                : 'light';
         }
-        function initTheme() { if(localStorage.theme === 'dark') document.documentElement.classList.add('dark'); }
+
+        function initTheme() {
+            if(localStorage.theme === 'dark')
+                document.documentElement.classList.add('dark');
+        }
     </script>
 </body>
 </html>
